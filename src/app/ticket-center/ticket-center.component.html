@@ -1,0 +1,218 @@
+<div class="ticket-page">
+
+    <!-- HERO -->
+    <section class="ticket-hero">
+      <div class="hero-left">
+        <div class="hero-badge">
+          🏭 Web System Support for Production Line
+        </div>
+  
+        <h1>
+          PRESS Web Ticket<br />
+          Center
+        </h1>
+  
+        <p>
+          ศูนย์แจ้งปัญหาระบบเว็บในกระบวนการผลิต เลือกโปรเจคที่มีปัญหา
+          ระบบจะส่ง Ticket ไปหาเจ้าของโปรเจคอัตโนมัติ
+        </p>
+      </div>
+  
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-title">
+            Open <span>⚠️</span>
+          </div>
+          <div class="stat-value">{{ stats.open }}</div>
+        </div>
+  
+        <div class="stat-card">
+          <div class="stat-title">
+            In Progress <span>🛠️</span>
+          </div>
+          <div class="stat-value">{{ stats.inProgress }}</div>
+        </div>
+  
+        <div class="stat-card">
+          <div class="stat-title">
+            Resolved <span>✅</span>
+          </div>
+          <div class="stat-value">{{ stats.resolved }}</div>
+        </div>
+      </div>
+    </section>
+  
+    <!-- CONTENT -->
+    <section class="ticket-content">
+  
+      <!-- LEFT PROJECT LIST -->
+      <div class="project-panel">
+        <div class="panel-head">
+          <div>
+            <div class="section-label">📌 Select Project</div>
+            <h2>เลือกโปรเจคที่ต้องการแจ้งปัญหา</h2>
+            <p>แต่ละโปรเจคมี Owner ที่ดูแลอยู่แล้ว ผู้ใช้เลือกแล้วส่งได้ทันที</p>
+          </div>
+  
+          <div class="auto-route-pill">
+            Auto route to owner
+          </div>
+        </div>
+  
+        <div class="project-grid">
+          <button
+            type="button"
+            class="project-card"
+            *ngFor="let project of projects"
+            [class.active]="selectedProject.id === project.id"
+            (click)="selectProject(project)"
+          >
+            <div class="project-icon" [ngClass]="project.color">
+              {{ project.icon }}
+            </div>
+  
+            <div class="project-info">
+              <h3>{{ project.name }}</h3>
+              <p>{{ project.subtitle }}</p>
+  
+              <div class="project-meta">
+                <span class="owner-pill">Owner: {{ project.owner }}</span>
+                <span
+                  class="status-pill"
+                  [ngClass]="getStatusClass(project.status)"
+                >
+                  {{ project.status }}
+                </span>
+              </div>
+            </div>
+  
+            <div class="check-mark" *ngIf="selectedProject.id === project.id">
+              ✓
+            </div>
+          </button>
+        </div>
+      </div>
+  
+      <!-- RIGHT OWNER CARD -->
+      <div class="owner-panel">
+        <div class="owner-head">
+          <div class="owner-icon">🎧</div>
+          <h2>Project Owner Card</h2>
+          <p>ข้อมูลผู้รับผิดชอบจะเปลี่ยนตามโปรเจคที่เลือก</p>
+        </div>
+  
+        <div class="owner-body">
+          <div class="owner-row">
+            <span>Project</span>
+            <strong>{{ selectedProject.name }}</strong>
+          </div>
+  
+          <div class="owner-row">
+            <span>Owner</span>
+            <strong>{{ selectedProject.owner }}</strong>
+          </div>
+  
+          <div class="owner-row">
+            <span>Email</span>
+            <strong>{{ selectedProject.ownerEmail }}</strong>
+          </div>
+  
+          <div class="owner-row">
+            <span>Status</span>
+            <strong>
+              <span
+                class="status-pill"
+                [ngClass]="getStatusClass(selectedProject.status)"
+              >
+                {{ selectedProject.status }}
+              </span>
+            </strong>
+          </div>
+  
+          <button type="button" class="create-ticket-btn" (click)="createTicket()">
+            ➕ Create Ticket for {{ selectedProject.name }}
+          </button>
+  
+          <div class="route-note">
+            Ticket นี้จะถูกส่งไปหา
+            <b>{{ selectedProject.owner }}</b>
+            โดยอัตโนมัติ
+          </div>
+        </div>
+      </div>
+  
+    </section>
+
+    <!-- TICKET LIST -->
+<section class="ticket-list-panel">
+    <div class="ticket-list-head">
+      <div>
+        <div class="section-label">🔎 Ticket List</div>
+        <h2>รายการปัญหาที่แจ้งเข้ามา</h2>
+      </div>
+  
+      <div class="filtered-pill">
+        Filtered View
+      </div>
+    </div>
+  
+    <div class="ticket-table-wrap">
+      <table class="ticket-table">
+        <thead>
+          <tr>
+            <th>Ticket No</th>
+            <th>Project</th>
+            <th>Problem</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+  
+        <tbody>
+          <tr *ngFor="let ticket of tickets">
+            <td>
+              <span class="ticket-no">{{ ticket.ticketNo }}</span>
+            </td>
+  
+            <td>
+              <div class="ticket-project-name">{{ ticket.project }}</div>
+              <div class="ticket-sub">{{ ticket.line }}</div>
+            </td>
+  
+            <td>
+              <div class="ticket-problem">{{ ticket.problem }}</div>
+              <div class="ticket-sub">
+                By {{ ticket.requester }} • {{ ticket.requestAt }}
+              </div>
+            </td>
+  
+            <td>
+              <span
+                class="priority-pill"
+                [ngClass]="getPriorityClass(ticket.priority)"
+              >
+                {{ ticket.priority }}
+              </span>
+            </td>
+  
+            <td>
+              <span
+                class="ticket-status-pill"
+                [ngClass]="getTicketStatusClass(ticket.status)"
+              >
+                {{ ticket.status }}
+              </span>
+            </td>
+  
+            <td>
+              <div class="ticket-owner">{{ ticket.owner }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  
+  </div>
