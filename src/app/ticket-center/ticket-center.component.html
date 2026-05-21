@@ -201,50 +201,65 @@
       </section>
     }
 
-    <!-- TICKET LIST -->
+   <!-- TICKET LIST -->
 <section class="ticket-list-panel">
-    <div class="ticket-list-head">
-      <div>
-        <div class="section-label">🔎 Ticket List</div>
-        <h2>รายการปัญหาที่แจ้งเข้ามา</h2>
-      </div>
-  
-      <div class="filtered-pill">
-        Filtered View
-      </div>
+  <div class="ticket-list-head">
+    <div>
+      <div class="section-label">🔎 Ticket List</div>
+      <h2>รายการปัญหาที่แจ้งเข้ามา</h2>
     </div>
-  
-    <div class="ticket-table-wrap">
-      <table class="ticket-table">
-        <thead>
+
+    <div class="filtered-pill">
+      Filtered View
+    </div>
+  </div>
+
+  <div class="ticket-table-wrap">
+    <table class="ticket-table">
+      <thead>
+        <tr>
+          <th>Ticket No</th>
+          <th>Project & Area</th>
+          <th>Problem</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>RequestBy</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <ng-container *ngFor="let ticket of tickets">
           <tr>
-            <th>Ticket No</th>
-            <th>Project</th>
-            <th>Problem</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Owner</th>
-          </tr>
-        </thead>
-  
-        <tbody>
-          <tr *ngFor="let ticket of tickets">
             <td>
+              <button
+                type="button"
+                class="ticket-file-toggle"
+                (click)="toggleTicketFiles(ticket)"
+                [disabled]="!ticket.attachments.length"
+                title="Show Attachments"
+              >
+                <i
+                  class="fas"
+                  [ngClass]="expandedTicketId === ticket.id ? 'fa-chevron-down' : 'fa-chevron-right'"
+                ></i>
+              </button>
+
               <span class="ticket-no">{{ ticket.ticketNo }}</span>
             </td>
-  
+
             <td>
-              <div class="ticket-project-name">{{ ticket.project }}</div>
-              <div class="ticket-sub">{{ ticket.line }}</div>
+              <div class="ticket-project-name">{{ ticket.projectName }}</div>
+              <div class="ticket-sub">{{ ticket.area }}</div>
             </td>
-  
+
             <td>
-              <div class="ticket-problem">{{ ticket.problem }}</div>
+              <div class="ticket-problem">{{ ticket.problemTitle }}</div>
               <div class="ticket-sub">
-                By {{ ticket.requester }} • {{ ticket.requestAt }}
+                {{ ticket.problemDetail }}
               </div>
             </td>
-  
+
             <td>
               <span
                 class="priority-pill"
@@ -253,24 +268,78 @@
                 {{ ticket.priority }}
               </span>
             </td>
-  
+
             <td>
               <span
                 class="ticket-status-pill"
-                [ngClass]="getTicketStatusClass(ticket.status)"
+                [ngClass]="getTicketStatusClass(ticket.state)"
               >
-                {{ ticket.status }}
+                {{ ticket.state }}
               </span>
             </td>
-  
+
             <td>
-              <div class="ticket-owner">{{ ticket.owner }}</div>
+              <div class="ticket-owner">{{ ticket.requestByDisplay }}</div>
+              <div class="ticket-sub">{{ ticket.requestAt }}</div>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="ticket-detail-btn"
+                (click)="openTicketDetail(ticket)"
+                title="Ticket Detail"
+              >
+              <i class="fas fa-info-circle"></i>
+              </button>
             </td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>  
+
+          <tr
+            class="ticket-file-row"
+            *ngIf="expandedTicketId === ticket.id"
+          >
+            <td colspan="7">
+              <div class="ticket-file-panel">
+                <div class="ticket-file-title">
+                  Attachments
+                </div>
+
+                <div
+                  class="ticket-file-empty"
+                  *ngIf="!ticket.attachments.length"
+                >
+                  No attachment files
+                </div>
+
+                <div
+                  class="ticket-image-grid"
+                  *ngIf="ticket.attachments.length"
+                >
+                  <a
+                    class="ticket-image-card"
+                    *ngFor="let file of ticket.attachments"
+                    [href]="config.apiServer + file.fileUrl"
+                    target="_blank"
+                  >
+                    <img
+                      [src]="config.apiServer + file.fileUrl"
+                      [alt]="file.fileName"
+                    />
+
+                    <div class="ticket-image-name">
+                      {{ file.fileName }}
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</section>
 
   
   </div>

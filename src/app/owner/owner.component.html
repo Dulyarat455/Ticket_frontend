@@ -186,44 +186,10 @@
               ></textarea>
             </div>
   
-            <div class="form-row">
-              <label>Root Cause</label>
-              <textarea
-                rows="3"
-                [(ngModel)]="inchargeForm.rootCause"
-                placeholder="สาเหตุของปัญหา เช่น API error, config ผิด, user input ผิด..."
-              ></textarea>
-            </div>
+         
+           
   
-            <div class="form-row">
-              <label>
-                Action Taken
-                <span *ngIf="inchargeForm.status === 'Complete'">*</span>
-              </label>
-              <textarea
-                rows="3"
-                [(ngModel)]="inchargeForm.actionTaken"
-                placeholder="สิ่งที่ดำเนินการแก้ไข เช่น แก้ code, restart service, update master..."
-              ></textarea>
-            </div>
-  
-            <div class="form-row" *ngIf="inchargeForm.status === 'On Process'">
-              <label>Expected Finish Date</label>
-              <input
-                type="date"
-                [(ngModel)]="inchargeForm.expectedFinishDate"
-              />
-            </div>
-  
-            <div class="form-row">
-              <label>Evidence / Attach File Name</label>
-              <input
-                type="text"
-                [(ngModel)]="inchargeForm.evidenceFileName"
-                placeholder="เช่น screenshot-error.png หรือ log-file.txt"
-              />
-            </div>
-  
+           
             <div class="form-actions">
               <button type="button" class="cancel-btn" (click)="clearInchargeForm()">
                 Cancel

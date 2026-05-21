@@ -303,20 +303,6 @@
             </ng-template>
           </div>
   
-          <div class="detail-section" *ngIf="selectedTicket.rootCause">
-            <label>Root Cause</label>
-            <div class="detail-text">
-              {{ selectedTicket.rootCause }}
-            </div>
-          </div>
-  
-          <div class="detail-section" *ngIf="selectedTicket.actionTaken">
-            <label>Action Taken</label>
-            <div class="detail-text">
-              {{ selectedTicket.actionTaken }}
-            </div>
-          </div>
-  
           <div class="detail-section" *ngIf="selectedTicket.expectedFinishDate">
             <label>Expected Finish Date</label>
             <div class="detail-text strong">
