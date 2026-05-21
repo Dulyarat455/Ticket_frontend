@@ -41,107 +41,165 @@
         </div>
       </div>
     </section>
-  
-    <!-- CONTENT -->
-    <section class="ticket-content">
-  
-      <!-- LEFT PROJECT LIST -->
-      <div class="project-panel">
-        <div class="panel-head">
-          <div>
-            <div class="section-label">📌 Select Project</div>
-            <h2>เลือกโปรเจคที่ต้องการแจ้งปัญหา</h2>
-            <p>แต่ละโปรเจคมี Owner ที่ดูแลอยู่แล้ว ผู้ใช้เลือกแล้วส่งได้ทันที</p>
-          </div>
-  
-          <div class="auto-route-pill">
-            Auto route to owner
-          </div>
-        </div>
-  
-        <div class="project-grid">
-          <button
-            type="button"
-            class="project-card"
-            *ngFor="let project of projects"
-            [class.active]="selectedProject.id === project.id"
-            (click)="selectProject(project)"
-          >
-            <div class="project-icon" [ngClass]="project.color">
-              {{ project.icon }}
+
+
+    @if (token && token.trim().length > 0) {
+      <!-- CONTENT -->
+      <section class="ticket-content">
+    
+        <!-- LEFT PROJECT LIST -->
+        <div class="project-panel">
+          <div class="panel-head">
+            <div>
+              <div class="section-label">📌 Select Project</div>
+              <h2>เลือกโปรเจคที่ต้องการแจ้งปัญหา</h2>
+              <p>แต่ละโปรเจคมี Owner ที่ดูแลอยู่แล้ว ผู้ใช้เลือกแล้วส่งได้ทันที</p>
             </div>
-  
-            <div class="project-info">
-              <h3>{{ project.name }}</h3>
-              <p>{{ project.subtitle }}</p>
-  
-              <div class="project-meta">
-                <span class="owner-pill">Owner: {{ project.owner }}</span>
-                <span
-                  class="status-pill"
-                  [ngClass]="getStatusClass(project.status)"
-                >
-                  {{ project.status }}
-                </span>
+    
+            <div class="auto-route-pill">
+              Auto route to owner
+            </div>
+          </div>
+    
+          <div class="project-grid">
+    
+            <!-- Loading -->
+            @if (isLoadingProjects) {
+              <div class="project-loading-card">
+                <i class="fas fa-spinner fa-spin"></i>
+                <strong>Loading Projects...</strong>
+                <span>กำลังโหลด Project จากระบบ</span>
               </div>
-            </div>
-  
-            <div class="check-mark" *ngIf="selectedProject.id === project.id">
-              ✓
-            </div>
-          </button>
+            }
+    
+            <!-- Empty -->
+            @if (!isLoadingProjects && projects.length === 0) {
+              <div class="project-loading-card">
+                <i class="fas fa-folder-open"></i>
+                <strong>No Project Found</strong>
+                <span>ยังไม่มี Project สำหรับแจ้งปัญหา</span>
+              </div>
+            }
+    
+            <!-- Project Cards -->
+            @if (!isLoadingProjects && projects.length > 0) {
+              @for (project of projects; track project.id) {
+                <button
+                  type="button"
+                  class="project-card"
+                  [class.active]="selectedProject?.id === project.id"
+                  (click)="selectProject(project)"
+                >
+                  <div class="project-icon" [ngClass]="project.color">
+                    {{ project.icon }}
+                  </div>
+    
+                  <div class="project-info">
+                    <h3>{{ project.name }}</h3>
+                    <p>{{ project.subtitle }}</p>
+    
+                    <div class="project-meta">
+                      <span class="owner-pill">
+                        Owner: {{ project.owner || '-' }}
+                      </span>
+    
+                      <span
+                        class="status-pill"
+                        [ngClass]="getStatusClass(project.status)"
+                      >
+                        {{ project.status }}
+                      </span>
+                    </div>
+                  </div>
+    
+                  @if (selectedProject?.id === project.id) {
+                    <div class="check-mark">
+                      ✓
+                    </div>
+                  }
+                </button>
+              }
+            }
+    
+          </div>
         </div>
-      </div>
-  
-      <!-- RIGHT OWNER CARD -->
-      <div class="owner-panel">
-        <div class="owner-head">
-          <div class="owner-icon">🎧</div>
-          <h2>Project Owner Card</h2>
-          <p>ข้อมูลผู้รับผิดชอบจะเปลี่ยนตามโปรเจคที่เลือก</p>
-        </div>
-  
-        <div class="owner-body">
-          <div class="owner-row">
-            <span>Project</span>
-            <strong>{{ selectedProject.name }}</strong>
+    
+        <!-- RIGHT OWNER CARD -->
+        <div class="owner-panel">
+          <div class="owner-head">
+            <div class="owner-icon">🎧</div>
+            <h2>Project Owner Card</h2>
+            <p>ข้อมูลผู้รับผิดชอบจะเปลี่ยนตามโปรเจคที่เลือก</p>
           </div>
-  
-          <div class="owner-row">
-            <span>Owner</span>
-            <strong>{{ selectedProject.owner }}</strong>
-          </div>
-  
-          <div class="owner-row">
-            <span>Email</span>
-            <strong>{{ selectedProject.ownerEmail }}</strong>
-          </div>
-  
-          <div class="owner-row">
-            <span>Status</span>
-            <strong>
-              <span
-                class="status-pill"
-                [ngClass]="getStatusClass(selectedProject.status)"
+    
+          <div class="owner-body">
+    
+            @if (selectedProject) {
+              <div class="owner-row">
+                <span>Project</span>
+                <strong>{{ selectedProject.name }}</strong>
+              </div>
+    
+              <div class="owner-row">
+                <span>Owner</span>
+                <strong>
+                  {{ selectedProject.owner || '-' }}
+              
+                  @if (selectedProject.ownerEmpNo && selectedProject.ownerEmpNo !== '-') {
+                    [{{ selectedProject.ownerEmpNo }}]
+                  }
+                </strong>
+              </div>
+    
+              <div class="owner-row">
+                <span>Email</span>
+                <strong>{{ selectedProject.ownerEmail || '-' }}</strong>
+              </div>
+    
+              <div class="owner-row">
+                <span>Status</span>
+                <strong>
+                  <span
+                    class="status-pill"
+                    [ngClass]="getStatusClass(selectedProject.status)"
+                  >
+                    {{ selectedProject.status }}
+                  </span>
+                </strong>
+              </div>
+    
+              <button
+                type="button"
+                class="create-ticket-btn"
+                (click)="createTicket()"
+                [disabled]="!selectedProject || isLoadingProjects"
               >
-                {{ selectedProject.status }}
-              </span>
-            </strong>
-          </div>
-  
-          <button type="button" class="create-ticket-btn" (click)="createTicket()">
-            ➕ Create Ticket for {{ selectedProject.name }}
-          </button>
-  
-          <div class="route-note">
-            Ticket นี้จะถูกส่งไปหา
-            <b>{{ selectedProject.owner }}</b>
-            โดยอัตโนมัติ
+                ➕ Create Ticket for {{ selectedProject.name }}
+              </button>
+    
+              <div class="route-note">
+                Ticket นี้จะถูกส่งไปหา
+                <b>{{ selectedProject.owner || '-' }}</b>
+                โดยอัตโนมัติ
+              </div>
+            } @else {
+              <div class="empty-owner-card">
+                <div class="empty-owner-icon">
+                  <i class="fas fa-folder-open"></i>
+                </div>
+    
+                <h3>ยังไม่ได้เลือก Project</h3>
+                <p>
+                  กรุณาเลือก Project จากด้านซ้ายก่อนสร้าง Ticket
+                </p>
+              </div>
+            }
+    
           </div>
         </div>
-      </div>
-  
-    </section>
+    
+      </section>
+    }
 
     <!-- TICKET LIST -->
 <section class="ticket-list-panel">
@@ -212,7 +270,7 @@
         </tbody>
       </table>
     </div>
-  </section>
+  </section>  
 
   
   </div>

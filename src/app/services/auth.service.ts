@@ -11,50 +11,80 @@ export class AuthService {
   private authStatus = new BehaviorSubject<boolean>(false);
   authStatus$ = this.authStatus.asObservable();
 
-  // เพิ่ม BehaviorSubject สำหรับแจ้ง component refresh
+  private loggedIn$ = new BehaviorSubject<boolean>(
+    !!localStorage.getItem('ticketPress_token')
+  );
+  isLoggedIn$ = this.loggedIn$.asObservable();
+
   private refreshComponents = new BehaviorSubject<boolean>(false);
   refreshComponents$ = this.refreshComponents.asObservable();
 
   private authStateChange = new BehaviorSubject<boolean>(false);
 
-  // เพิ่ม Subject สำหรับ auth state
   private authState = new BehaviorSubject<{
     isAuthenticated: boolean;
     token: string | null;
     empNo: string | null;
   }>({
-    isAuthenticated: false,
-    token: null,
-    empNo: null,
+    isAuthenticated: !!localStorage.getItem('ticketPress_token'),
+    token: localStorage.getItem('ticketPress_token'),
+    empNo: localStorage.getItem('ticketPress_empNo'),
   });
+
   authState$ = this.authState.asObservable();
-  
+
   constructor(private router: Router, private http: HttpClient) {}
 
   login(userData: any) {
-    //เปลี่ยนชื่อ token ตาม Project ที่ทำด้วย
-    localStorage.setItem('angular_token', userData.token);
-    localStorage.setItem('angular_name', userData.name);
-    localStorage.setItem('angular_id', userData.id);
-    localStorage.setItem('angular_empNo', userData.empNo);
+    localStorage.setItem('ticketPress_token', userData.token || '');
+    localStorage.setItem('ticketPress_name', userData.name || '');
+    localStorage.setItem('ticketPress_userId', userData.id || '');
+    localStorage.setItem('ticketPress_empNo', userData.empNo || '');
+    localStorage.setItem('ticketPress_sectionName', userData.sectionName || '');
+    localStorage.setItem('ticketPress_sectionId', userData.sectionId || '');
+    localStorage.setItem('ticketPress_groupName', userData.groupName || '');
+    localStorage.setItem('ticketPress_groupId', userData.groupId || '');
+    localStorage.setItem('ticketPress_role', userData.role || '');
+
     this.authStatus.next(true);
+    this.loggedIn$.next(true);
     this.refreshComponents.next(true);
+
+    this.authState.next({
+      isAuthenticated: true,
+      token: userData.token || '',
+      empNo: userData.empNo || '',
+    });
   }
 
   logout() {
-    localStorage.removeItem('angular_token');
-    localStorage.removeItem('angular_name');
-    localStorage.removeItem('angular_id');
-    localStorage.removeItem('angular_empNo');
+    localStorage.removeItem('ticketPress_token');
+    localStorage.removeItem('ticketPress_name');
+    localStorage.removeItem('ticketPress_userId');
+    localStorage.removeItem('ticketPress_empNo');
+    localStorage.removeItem('ticketPress_sectionName');
+    localStorage.removeItem('ticketPress_sectionId');
+    localStorage.removeItem('ticketPress_groupName');
+    localStorage.removeItem('ticketPress_groupId');
+    localStorage.removeItem('ticketPress_role');
+
     this.authStatus.next(false);
-    window.location.href = '/TicketPress';
-    // this.refreshComponents.next(true); // แจ้ง components ให้ refresh
-    // this.router.navigate(['/']);
+    this.loggedIn$.next(false);
+    this.refreshComponents.next(true);
+
+    this.authState.next({
+      isAuthenticated: false,
+      token: null,
+      empNo: null,
+    });
+
+    this.router.navigate(['/']);
   }
 
   getUserLevel() {
-    const token = localStorage.getItem('angular_token');
+    const token = localStorage.getItem('ticketPress_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     return this.http.get(config.apiServer + '/api/user/getLevelFromToken', {
       headers,
     });
@@ -62,6 +92,7 @@ export class AuthService {
 
   updateAuthStatus(status: boolean) {
     this.authStatus.next(status);
+    this.loggedIn$.next(status);
   }
 
   notifyLogin() {

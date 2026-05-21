@@ -1,0 +1,342 @@
+<div class="my-ticket-page">
+
+    <!-- HEADER -->
+    <section class="my-ticket-hero">
+      <div>
+        <div class="hero-label">🎫 MY REQUEST TICKETS</div>
+        <h1>My Ticket Tracking</h1>
+        <p>
+          หน้าสำหรับติดตาม Ticket ที่คุณแจ้งไปหา Project Owner
+          สามารถดูสถานะ ความคืบหน้า และ Remark จาก Owner ได้
+        </p>
+  
+        <div class="requester-row">
+          <span><i class="fas fa-user"></i> {{ requesterName }}</span>
+          <span><i class="fas fa-users"></i> {{ requesterGroup }}</span>
+        </div>
+      </div>
+  
+      <div class="summary-grid">
+        <div class="summary-card total">
+          <span>Total</span>
+          <strong>{{ totalTickets }}</strong>
+        </div>
+  
+        <div class="summary-card open">
+          <span>Open</span>
+          <strong>{{ totalOpen }}</strong>
+        </div>
+  
+        <div class="summary-card progress">
+          <span>In Progress</span>
+          <strong>{{ totalInProgress }}</strong>
+        </div>
+  
+        <div class="summary-card resolved">
+          <span>Resolved</span>
+          <strong>{{ totalResolved }}</strong>
+        </div>
+      </div>
+    </section>
+  
+    <!-- FILTER -->
+    <section class="filter-panel">
+      <div class="filter-left">
+        <div class="section-label">🔎 Filter Tickets</div>
+        <h2>ค้นหาและติดตามสถานะ Ticket</h2>
+      </div>
+  
+      <div class="filter-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchText"
+            placeholder="Search ticket no, project, problem, owner..."
+          />
+        </div>
+  
+        <div class="status-filter-group">
+          <button
+            type="button"
+            [class.active]="statusFilter === 'All'"
+            (click)="setStatusFilter('All')"
+          >
+            All
+          </button>
+  
+          <button
+            type="button"
+            [class.active]="statusFilter === 'Open'"
+            (click)="setStatusFilter('Open')"
+          >
+            Open
+          </button>
+  
+          <button
+            type="button"
+            [class.active]="statusFilter === 'In Progress'"
+            (click)="setStatusFilter('In Progress')"
+          >
+            In Progress
+          </button>
+  
+          <button
+            type="button"
+            [class.active]="statusFilter === 'Resolved'"
+            (click)="setStatusFilter('Resolved')"
+          >
+            Resolved
+          </button>
+        </div>
+  
+        <button type="button" class="clear-btn" (click)="clearFilter()">
+          Clear
+        </button>
+      </div>
+    </section>
+  
+    <!-- CONTENT -->
+    <section class="my-ticket-content">
+  
+      <!-- LEFT LIST -->
+      <div class="ticket-list-panel">
+        <div class="ticket-list-head">
+          <div>
+            <div class="section-label">📋 Ticket List</div>
+            <h2>รายการ Ticket ของฉัน</h2>
+          </div>
+  
+          <div class="count-pill">
+            {{ filteredTickets.length }} Tickets
+          </div>
+        </div>
+  
+        <div class="ticket-card-list">
+          <button
+            type="button"
+            class="my-ticket-card"
+            *ngFor="let ticket of filteredTickets"
+            [class.active]="selectedTicket?.id === ticket.id"
+            (click)="selectTicket(ticket)"
+          >
+            <div class="ticket-card-top">
+              <span class="ticket-no">{{ ticket.ticketNo }}</span>
+  
+              <span
+                class="ticket-status-pill"
+                [ngClass]="getStatusClass(ticket.status)"
+              >
+                {{ ticket.status }}
+              </span>
+            </div>
+  
+            <div class="ticket-project">
+              {{ ticket.projectName }}
+            </div>
+  
+            <div class="ticket-problem">
+              {{ ticket.problem }}
+            </div>
+  
+            <div class="ticket-meta">
+              <span><i class="fas fa-industry"></i> {{ ticket.line }}</span>
+              <span><i class="fas fa-user-shield"></i> {{ ticket.owner }}</span>
+            </div>
+  
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                [style.width.%]="getProgressPercent(ticket.status)"
+                [ngClass]="getStatusClass(ticket.status)"
+              ></div>
+            </div>
+  
+            <div class="ticket-footer">
+              <span>{{ ticket.requestAt }}</span>
+              <span
+                class="priority-pill"
+                [ngClass]="getPriorityClass(ticket.priority)"
+              >
+                {{ ticket.priority }}
+              </span>
+            </div>
+          </button>
+  
+          <div class="empty-list" *ngIf="filteredTickets.length === 0">
+            <i class="fas fa-ticket-alt"></i>
+            <h3>ไม่พบ Ticket</h3>
+            <p>ลองเปลี่ยนคำค้นหาหรือสถานะที่กรองอยู่</p>
+          </div>
+        </div>
+      </div>
+  
+      <!-- RIGHT DETAIL -->
+      <div class="ticket-detail-panel">
+        <div class="detail-head">
+          <div class="detail-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+  
+          <div>
+            <h2>Ticket Detail</h2>
+            <p>รายละเอียดและความคืบหน้าของ Ticket</p>
+          </div>
+        </div>
+  
+        <div class="detail-body" *ngIf="selectedTicket; else noTicketSelected">
+          <div class="detail-ticket-header">
+            <div>
+              <div class="detail-ticket-no">{{ selectedTicket.ticketNo }}</div>
+              <div class="detail-project">{{ selectedTicket.projectName }}</div>
+            </div>
+  
+            <span
+              class="ticket-status-pill"
+              [ngClass]="getStatusClass(selectedTicket.status)"
+            >
+              {{ selectedTicket.status }}
+            </span>
+          </div>
+  
+          <div class="detail-section">
+            <label>Problem</label>
+            <div class="detail-text strong">
+              {{ selectedTicket.problem }}
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <label>Detail</label>
+            <div class="detail-text">
+              {{ selectedTicket.detail }}
+            </div>
+          </div>
+  
+          <div class="detail-grid">
+            <div>
+              <label>Requester</label>
+              <strong>{{ selectedTicket.requester }}</strong>
+            </div>
+  
+            <div>
+              <label>Line</label>
+              <strong>{{ selectedTicket.line }}</strong>
+            </div>
+  
+            <div>
+              <label>Owner</label>
+              <strong>{{ selectedTicket.owner }}</strong>
+            </div>
+  
+            <div>
+              <label>Priority</label>
+              <span
+                class="priority-pill"
+                [ngClass]="getPriorityClass(selectedTicket.priority)"
+              >
+                {{ selectedTicket.priority }}
+              </span>
+            </div>
+  
+            <div>
+              <label>Request At</label>
+              <strong>{{ selectedTicket.requestAt }}</strong>
+            </div>
+  
+            <div>
+              <label>Updated At</label>
+              <strong>{{ selectedTicket.updatedAt || '-' }}</strong>
+            </div>
+          </div>
+  
+          <div class="tracking-box">
+            <div class="tracking-title">Tracking Progress</div>
+  
+            <div class="tracking-steps">
+              <div class="tracking-step active">
+                <span>1</span>
+                <div>
+                  <strong>Request Created</strong>
+                  <p>User แจ้ง Ticket เข้าระบบ</p>
+                </div>
+              </div>
+  
+              <div
+                class="tracking-step"
+                [class.active]="selectedTicket.status === 'In Progress' || selectedTicket.status === 'Resolved'"
+              >
+                <span>2</span>
+                <div>
+                  <strong>Owner Incharge</strong>
+                  <p>Owner รับเรื่องและกำลังดำเนินการ</p>
+                </div>
+              </div>
+  
+              <div
+                class="tracking-step"
+                [class.active]="selectedTicket.status === 'Resolved'"
+              >
+                <span>3</span>
+                <div>
+                  <strong>Complete</strong>
+                  <p>Owner แก้ไขและตอบกลับเรียบร้อย</p>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="owner-reply-box">
+            <div class="reply-title">
+              <i class="fas fa-reply"></i>
+              Owner Reply / Remark
+            </div>
+  
+            <div class="reply-content" *ngIf="selectedTicket.ownerRemark; else noRemark">
+              {{ selectedTicket.ownerRemark }}
+            </div>
+  
+            <ng-template #noRemark>
+              <div class="no-remark">
+                ยังไม่มี Remark จาก Owner
+              </div>
+            </ng-template>
+          </div>
+  
+          <div class="detail-section" *ngIf="selectedTicket.rootCause">
+            <label>Root Cause</label>
+            <div class="detail-text">
+              {{ selectedTicket.rootCause }}
+            </div>
+          </div>
+  
+          <div class="detail-section" *ngIf="selectedTicket.actionTaken">
+            <label>Action Taken</label>
+            <div class="detail-text">
+              {{ selectedTicket.actionTaken }}
+            </div>
+          </div>
+  
+          <div class="detail-section" *ngIf="selectedTicket.expectedFinishDate">
+            <label>Expected Finish Date</label>
+            <div class="detail-text strong">
+              {{ selectedTicket.expectedFinishDate }}
+            </div>
+          </div>
+        </div>
+  
+        <ng-template #noTicketSelected>
+          <div class="empty-detail">
+            <div class="empty-icon">
+              <i class="fas fa-mouse-pointer"></i>
+            </div>
+  
+            <h3>เลือก Ticket เพื่อดูรายละเอียด</h3>
+            <p>
+              คลิก Ticket จากรายการด้านซ้าย เพื่อดูสถานะและ Remark จาก Project Owner
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </section>
+  </div>

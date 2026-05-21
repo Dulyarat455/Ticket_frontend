@@ -188,7 +188,7 @@ export class SignInComponent {
     };
 
     try {
-      this.http.post(config.apiServer + '/api/user/signin', payload).subscribe({
+      this.http.post(config.apiServer + '/api/user/signIn', payload).subscribe({
         next: (res: any) => {
           if (res.message === 'unauthorized') {
             this.isLoading = false;
@@ -201,11 +201,6 @@ export class SignInComponent {
             return;
           }
 
-          // this.token = res.token;
-          // localStorage.setItem('angular_token', this.token);
-          // localStorage.setItem('angular_name', res.name);
-          // localStorage.setItem('angular_id', res.id);
-          // localStorage.setItem('angular_empNo', res.empNo);
 
           this.authService.login(res);
 
@@ -217,9 +212,9 @@ export class SignInComponent {
             showConfirmButton: true,
           }).then(() => {
             // location.reload();
+            this.token = localStorage.getItem('ticketPress_token')!;
+            this.empNo = localStorage.getItem('ticketPress_empNo')!;
             this.router.navigate(['/']);
-            this.token = localStorage.getItem('angular_token')!;
-            this.empNo = localStorage.getItem('angular_empNo')!;
           });
         },
         error: (error) => {

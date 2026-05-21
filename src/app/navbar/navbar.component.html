@@ -18,12 +18,39 @@
 
   <ul class="navbar-nav ticket-nav-menu">
     <li class="nav-item d-none d-sm-inline-block">
-      <a [routerLink]="['/']" class="nav-link nav-normal-link">Home</a>
+      <a
+        [routerLink]="['/']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link nav-normal-link"
+      >
+        Home
+      </a>
     </li>
-
-    <li class="nav-item d-none d-sm-inline-block">
-      <a href="#" class="nav-link nav-normal-link">Contact</a>
-    </li>
+  
+    @if (!token || token.trim() === '') {
+      <li class="nav-item d-none d-sm-inline-block">
+        <a
+          [routerLink]="['/signIn']"
+          routerLinkActive="active"
+          class="nav-link nav-normal-link"
+        >
+          SignIn
+        </a>
+      </li>
+    }
+  
+    @if (token && token.trim().length > 0) {
+      <li class="nav-item d-none d-sm-inline-block">
+        <a
+          [routerLink]="['/myTicket']"
+          routerLinkActive="active"
+          class="nav-link nav-normal-link"
+        >
+          MyTicket
+        </a>
+      </li>
+    }
   </ul>
 
   <!-- Right navbar links -->

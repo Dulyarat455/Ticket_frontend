@@ -77,10 +77,15 @@
   
   .summary-box {
     min-height: 100px;
-    padding: 18px;
+    padding: 18px 20px;
     border-radius: 22px;
     border: 1px solid #e2e8f0;
     background: #f8fafc;
+  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
   }
   
   .summary-box span {
@@ -88,14 +93,17 @@
     color: #64748b;
     font-size: 13px;
     font-weight: 950;
+    line-height: 1.2;
+    margin-bottom: 10px;
   }
   
   .summary-box strong {
     display: block;
-    margin-top: 12px;
+    margin: 0;
     color: #0f172a;
     font-size: 32px;
     font-weight: 950;
+    line-height: 1;
   }
   
   .summary-box.open {

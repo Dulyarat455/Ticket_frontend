@@ -13,8 +13,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   formattedDate: string = '';
   formattedTime: string = '';
   private timeInterval: any;
+  token: string | undefined = '';
+
 
   ngOnInit() {
+    this.token = localStorage.getItem('ticketPress_token') || '';
+
     this.updateDateTime();
 
     this.timeInterval = setInterval(() => {

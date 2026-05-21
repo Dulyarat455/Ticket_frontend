@@ -18,11 +18,7 @@ export class SidebarComponent {
     private http: HttpClient,
     private authService: AuthService
   ) {
-    this.authService.authStatus$.subscribe((status) => {
-      if (status) {
-        this.loadUserData();
-      }
-    });
+    
   } // เพิ่ม Router ใน constructor
   name: string = '';
   level: string = '';
@@ -68,7 +64,7 @@ export class SidebarComponent {
       // localStorage.removeItem('angular_level');
 
       // location.reload();
-      this.router.navigate(['/']);
+      this.router.navigate(['/signIn']);
       // window.location.href = '/ScrapPress';
     }
   }
