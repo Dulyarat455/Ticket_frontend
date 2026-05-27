@@ -106,78 +106,100 @@
         </div>
       </div>
   
-      <!-- RIGHT: DYNAMIC INCHARGE FORM -->
+     <!-- RIGHT: DYNAMIC INCHARGE FORM -->
       <div class="incharge-panel">
         <div class="incharge-head">
           <div class="incharge-icon">
             <i class="fas fa-user-check"></i>
           </div>
-  
+
           <div>
             <div class="incharge-label">DYNAMIC FORM</div>
             <h2>Incharge Ticket</h2>
             <p>
-              กดปุ่ม Incharge จากตาราง Assigned Tickets เพื่อเปิดฟอร์มของ Ticket นั้น
+              กดปุ่ม Incharge หรือ Update จากตาราง Assigned Tickets
+              เพื่อดำเนินการกับ Ticket นั้น
             </p>
           </div>
         </div>
-  
+
         <div class="incharge-body" *ngIf="selectedTicket; else noTicketSelected">
-  
           <div class="selected-ticket-card">
             <div class="selected-ticket-top">
               <div>
                 <div class="selected-ticket-no">{{ selectedTicket.ticketNo }}</div>
                 <div class="selected-ticket-project">{{ selectedTicket.projectName }}</div>
               </div>
-  
+
               <span
                 class="ticket-status-pill"
-                [ngClass]="getStatusClass(selectedTicket.status)"
+                [ngClass]="getStatusClass(selectedTicket.state)"
               >
-                {{ selectedTicket.status }}
+                {{ selectedTicket.state }}
               </span>
             </div>
-  
+
             <div class="selected-ticket-problem">
-              {{ selectedTicket.problem }}
+              {{ selectedTicket.problemTitle }}
             </div>
-  
+
             <div class="selected-ticket-meta">
-              <span><i class="fas fa-user"></i> {{ selectedTicket.requester }}</span>
-              <span><i class="fas fa-industry"></i> {{ selectedTicket.line }}</span>
+              <span><i class="fas fa-user"></i> {{ selectedTicket.requestByDisplay }}</span>
+              <span><i class="fas fa-industry"></i> {{ selectedTicket.area }}</span>
               <span><i class="far fa-clock"></i> {{ selectedTicket.requestAt }}</span>
             </div>
           </div>
-  
+
           <div class="incharge-form">
             <div class="form-row">
               <label>Status</label>
-  
-              <div class="status-choice-group">
+
+              <div class="status-choice-group" *ngIf="isWaitSelected">
                 <button
                   type="button"
                   class="status-choice on-process"
-                  [class.active]="inchargeForm.status === 'On Process'"
-                  (click)="inchargeForm.status = 'On Process'"
+                  [class.active]="inchargeForm.ticketStatus === 'onprocess'"
+                  (click)="setInchargeStatus('onprocess')"
                 >
                   <i class="fas fa-spinner"></i>
                   On Process
                 </button>
-  
+
+                <button
+                  type="button"
+                  class="status-choice deny"
+                  [class.active]="inchargeForm.ticketStatus === 'deny'"
+                  (click)="setInchargeStatus('deny')"
+                >
+                  <i class="fas fa-times-circle"></i>
+                  Deny
+                </button>
+              </div>
+
+              <div class="status-choice-group" *ngIf="isOnProcessSelected">
                 <button
                   type="button"
                   class="status-choice complete"
-                  [class.active]="inchargeForm.status === 'Complete'"
-                  (click)="inchargeForm.status = 'Complete'"
+                  [class.active]="inchargeForm.ticketStatus === 'complete'"
+                  (click)="setInchargeStatus('complete')"
                 >
                   <i class="fas fa-check-circle"></i>
                   Complete
                 </button>
+
+                <button
+                  type="button"
+                  class="status-choice deny"
+                  [class.active]="inchargeForm.ticketStatus === 'deny'"
+                  (click)="setInchargeStatus('deny')"
+                >
+                  <i class="fas fa-times-circle"></i>
+                  Deny
+                </button>
               </div>
             </div>
-  
-            <div class="form-row">
+
+            <div class="form-row" *ngIf="shouldShowRemark">
               <label>Remark to Requester <span>*</span></label>
               <textarea
                 rows="4"
@@ -185,132 +207,201 @@
                 placeholder="กรอกข้อความตอบกลับคนแจ้งปัญหา..."
               ></textarea>
             </div>
-  
-         
-           
-  
-           
+
             <div class="form-actions">
               <button type="button" class="cancel-btn" (click)="clearInchargeForm()">
                 Cancel
               </button>
-  
+
               <button type="button" class="submit-btn" (click)="submitIncharge()">
                 Submit Incharge
               </button>
             </div>
           </div>
         </div>
-  
+
         <ng-template #noTicketSelected>
           <div class="empty-incharge">
             <div class="empty-icon">
               <i class="fas fa-ticket-alt"></i>
             </div>
-  
+
             <h3>ยังไม่ได้เลือก Ticket</h3>
             <p>
-              กดปุ่ม <b>Incharge</b> จากตาราง Assigned Tickets
-              เพื่อเปิดฟอร์มดำเนินการของ Ticket นั้น
+              กดปุ่ม <b>Incharge</b> หรือ <b>Update</b>
+              จากตาราง Assigned Tickets เพื่อเปิดฟอร์มดำเนินการ
             </p>
-  
+
             <div class="empty-current-view">
               Current View: <b>{{ currentViewName }}</b>
             </div>
           </div>
         </ng-template>
       </div>
+      
     </section>
   
-    <!-- TICKET LIST -->
-    <section class="owner-ticket-panel">
-      <div class="ticket-list-head">
-        <div>
-          <div class="section-label">🎫 Assigned Tickets</div>
-          <h2>Ticket ที่อยู่ในความรับผิดชอบ</h2>
-        </div>
-  
-        <div class="ticket-count-pill">
-          {{ filteredTickets.length }} Tickets
-        </div>
-      </div>
-  
-      <div class="owner-ticket-table-wrap">
-        <table class="owner-ticket-table">
-          <thead>
-            <tr>
-              <th>Ticket No</th>
-              <th>Project</th>
-              <th>Problem</th>
-              <th>Requester</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-  
-          <tbody>
-            <tr
-              *ngFor="let ticket of filteredTickets"
-              [class.selected-row]="selectedTicket?.id === ticket.id"
-            >
-              <td>
-                <span class="ticket-no">{{ ticket.ticketNo }}</span>
-              </td>
-  
-              <td>
-                <div class="project-name">{{ ticket.projectName }}</div>
-                <div class="sub-text">{{ ticket.line }}</div>
-              </td>
-  
-              <td>
-                <div class="problem-text">{{ ticket.problem }}</div>
-                <div class="sub-text">{{ ticket.requestAt }}</div>
-              </td>
-  
-              <td>
-                <div class="requester-text">{{ ticket.requester }}</div>
-              </td>
-  
-              <td>
-                <span
-                  class="priority-pill"
-                  [ngClass]="getPriorityClass(ticket.priority)"
+
+
+
+
+   <!-- TICKET LIST -->
+<section class="owner-ticket-panel">
+  <div class="ticket-list-head">
+    <div>
+      <div class="section-label">🎫 Assigned Tickets</div>
+      <h2>Ticket ที่อยู่ในความรับผิดชอบ</h2>
+    </div>
+
+    <div class="ticket-count-pill">
+      {{ filteredTickets.length }} Tickets
+    </div>
+  </div>
+
+  <div class="owner-ticket-table-wrap">
+    <table class="owner-ticket-table">
+      <thead>
+        <tr>
+          <th>Ticket No</th>
+          <th>Project & Area</th>
+          <th>Problem</th>
+          <th>Requester</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Detail</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <ng-container *ngFor="let ticket of filteredTickets">
+          <tr [class.selected-row]="selectedTicket?.id === ticket.id">
+            <td>
+              <button
+                type="button"
+                class="ticket-file-toggle"
+                (click)="toggleTicketFiles(ticket)"
+                [disabled]="!ticket.attachments.length"
+                title="Show Attachments"
+              >
+                <i
+                  class="fas"
+                  [ngClass]="expandedTicketId === ticket.id ? 'fa-chevron-down' : 'fa-chevron-right'"
+                ></i>
+              </button>
+
+              <span class="ticket-no">{{ ticket.ticketNo }}</span>
+            </td>
+
+            <td>
+              <div class="project-name">{{ ticket.projectName }}</div>
+              <div class="sub-text">{{ ticket.area }}</div>
+            </td>
+
+            <td>
+              <div class="problem-text">{{ ticket.problemTitle }}</div>
+              <div class="sub-text">{{ ticket.problemDetail }}</div>
+            </td>
+
+            <td>
+              <div class="requester-text">{{ ticket.requestByDisplay }}</div>
+              <div class="sub-text">{{ ticket.requestAt }}</div>
+            </td>
+
+            <td>
+              <span
+                class="priority-pill"
+                [ngClass]="getPriorityClass(ticket.priority)"
+              >
+                {{ ticket.priority }}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="ticket-status-pill"
+                [ngClass]="getStatusClass(ticket.state)"
+              >
+                {{ ticket.state }}
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="detail-btn"
+                (click)="openTicketDetail(ticket)"
+                title="Ticket Detail"
+              >
+                <i class="fas fa-info-circle"></i>
+              </button>
+            </td>
+
+            <td>
+              <button
+                *ngIf="canShowAction(ticket)"
+                type="button"
+                class="action-btn"
+                [ngClass]="getStatusClass(ticket.state)"
+                (click)="openInchargeForm(ticket)"
+              >
+                {{ getActionLabel(ticket) }}
+              </button>
+            </td>
+          </tr>
+
+          <tr
+            class="ticket-file-row"
+            *ngIf="expandedTicketId === ticket.id"
+          >
+            <td colspan="8">
+              <div class="ticket-file-panel">
+                <div class="ticket-file-title">Attachments</div>
+
+                <div
+                  class="ticket-file-empty"
+                  *ngIf="!ticket.attachments.length"
                 >
-                  {{ ticket.priority }}
-                </span>
-              </td>
-  
-              <td>
-                <span
-                  class="ticket-status-pill"
-                  [ngClass]="getStatusClass(ticket.status)"
-                >
-                  {{ ticket.status }}
-                </span>
-              </td>
-  
-              <td>
-                <button
-                  type="button"
-                  class="action-btn"
-                  (click)="openInchargeForm(ticket)"
-                >
-                  Incharge
-                </button>
-              </td>
-            </tr>
-  
-            <tr *ngIf="filteredTickets.length === 0">
-              <td colspan="7">
-                <div class="empty-ticket">
-                  ไม่พบ Ticket ของ Project นี้
+                  No attachment files
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+
+                <div
+                  class="ticket-image-grid"
+                  *ngIf="ticket.attachments.length"
+                >
+                  <a
+                    class="ticket-image-card"
+                    *ngFor="let file of ticket.attachments"
+                    [href]="config.apiServer + file.fileUrl"
+                    target="_blank"
+                  >
+                    <img
+                      [src]="config.apiServer + file.fileUrl"
+                      [alt]="file.fileName"
+                    />
+
+                    <div class="ticket-image-name">
+                      {{ file.fileName }}
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+
+        <tr *ngIf="filteredTickets.length === 0">
+          <td colspan="8">
+            <div class="empty-ticket">
+              ไม่พบ Ticket ของ Project นี้
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
   
+
+
   </div>

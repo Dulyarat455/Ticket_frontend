@@ -1,11 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import Swal from 'sweetalert2';
+import { firstValueFrom } from 'rxjs';
 
-type OwnerProjectStatus = 'Online' | 'Maintenance' | 'Offline';
+import config from '../../config';
+
+type OwnerProjectStatus = 'Online' | 'Maintenance' | 'Offline' | string;
 type TicketPriority = 'Low' | 'Medium' | 'High' | 'Critical';
-type TicketStatus = 'Open' | 'In Progress' | 'Resolved';
-type InchargeActionStatus = 'On Process' | 'Complete';
+type TicketState = 'wait' | 'onprocess' | 'deny' | 'complete' | string;
+type InchargeSubmitStatus = 'onprocess' | 'deny' | 'complete';
 
 type OwnerProject = {
   id: number;
@@ -18,26 +23,59 @@ type OwnerProject = {
   color: 'blue' | 'purple' | 'orange' | 'green';
 };
 
+type TicketAttachment = {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  timeStmp?: string;
+};
+
+type TicketHistory = {
+  id: number;
+  ticketId: number;
+  state: string;
+  inchargeById?: number | null;
+  inchargeByName?: string;
+  inchargeByEmpNo?: string;
+  inchargeByDisplay?: string;
+  timeStmp: string;
+};
+
 type OwnerTicket = {
   id: number;
   ticketNo: string;
+
   projectId: number;
   projectName: string;
-  problem: string;
-  requester: string;
-  line: string;
+  area: string;
+
+  problemTitle: string;
+  problemDetail: string;
+
+  requestById: number;
+  requestByName: string;
+  requestByEmpNo: string;
+  requestByDisplay: string;
   requestAt: string;
+
   priority: TicketPriority;
-  status: TicketStatus;
+  state: TicketState;
+
+  contact: string;
+  reply: string;
+
+  inchargeById?: number | null;
+  inchargeByName?: string;
+  inchargeByEmpNo?: string;
+  inchargeByDisplay?: string;
+
+  attachments: TicketAttachment[];
+  histories: TicketHistory[];
 };
 
 type InchargeForm = {
-  status: InchargeActionStatus;
+  ticketStatus: InchargeSubmitStatus | '';
   remarkToRequester: string;
-  rootCause: string;
-  actionTaken: string;
-  expectedFinishDate: string;
-  evidenceFileName: string;
 };
 
 @Component({
@@ -47,99 +85,44 @@ type InchargeForm = {
   templateUrl: './owner.component.html',
   styleUrl: './owner.component.css'
 })
-export class OwnerComponent {
-  ownerName = 'MC Admin Team';
+export class OwnerComponent implements OnInit {
+  constructor(private http: HttpClient) {}
+
+  config = config;
+
+  token: string | undefined = '';
+  name: string | undefined = '';
+  empNo: string | undefined = '';
+  userId: number | null = null;
+
+  ownerName = '-';
   ownerRole = 'Project Owner / Incharge';
-  ownerEmail = 'mc-admin@company.local';
+  ownerEmail = '-';
 
   selectedProjectId: number | 'all' = 'all';
   selectedTicket: OwnerTicket | null = null;
+  expandedTicketId: number | null = null;
+
+  isLoadingOwnerTickets = false;
 
   inchargeForm: InchargeForm = this.getDefaultInchargeForm();
 
-  projects: OwnerProject[] = [
-    {
-      id: 1,
-      name: 'Material Control System',
-      module: 'Material Store / Production Line',
-      status: 'Online',
-      open: 8,
-      inProgress: 4,
-      resolved: 82,
-      color: 'blue'
-    },
-    {
-      id: 2,
-      name: 'PBASS Sync Monitor',
-      module: 'PBASS / Stock In',
-      status: 'Maintenance',
-      open: 5,
-      inProgress: 2,
-      resolved: 24,
-      color: 'orange'
-    },
-    {
-      id: 3,
-      name: 'Production Issue Request',
-      module: 'Issue / Return / Stock Out',
-      status: 'Online',
-      open: 3,
-      inProgress: 1,
-      resolved: 18,
-      color: 'green'
-    }
-  ];
+  projects: OwnerProject[] = [];
+  tickets: OwnerTicket[] = [];
 
-  tickets: OwnerTicket[] = [
-    {
-      id: 1,
-      ticketNo: 'TK-260513-001',
-      projectId: 1,
-      projectName: 'Material Control System',
-      problem: 'Scan Job No แล้วข้อมูลไม่ขึ้นใน Return Stock In',
-      requester: 'PD Line A',
-      line: 'Line A-03',
-      requestAt: '13 May 2026 08:42',
-      priority: 'High',
-      status: 'In Progress'
-    },
-    {
-      id: 2,
-      ticketNo: 'TK-260513-004',
-      projectId: 1,
-      projectName: 'Material Control System',
-      problem: 'Stock Out กด Confirm แล้วไม่ update storage map',
-      requester: 'MC Store',
-      line: 'MC Store',
-      requestAt: '13 May 2026 09:25',
-      priority: 'Critical',
-      status: 'Open'
-    },
-    {
-      id: 3,
-      ticketNo: 'TK-260513-002',
-      projectId: 2,
-      projectName: 'PBASS Sync Monitor',
-      problem: 'Preview Data ใช้เวลานานผิดปกติ',
-      requester: 'MC Store',
-      line: 'Stock In',
-      requestAt: '13 May 2026 09:18',
-      priority: 'Medium',
-      status: 'Open'
-    },
-    {
-      id: 4,
-      ticketNo: 'TK-260512-011',
-      projectId: 3,
-      projectName: 'Production Issue Request',
-      problem: 'รายการ Request Queue ไม่ refresh หลัง MC confirm',
-      requester: 'PD Group B',
-      line: 'Production',
-      requestAt: '12 May 2026 16:20',
-      priority: 'Low',
-      status: 'Resolved'
-    }
-  ];
+  ngOnInit() {
+    this.token = localStorage.getItem('ticketPress_token') || '';
+    this.name = localStorage.getItem('ticketPress_name') || '';
+    this.empNo = localStorage.getItem('ticketPress_empNo') || '';
+    this.userId = Number(localStorage.getItem('ticketPress_userId')) || null;
+
+    this.ownerName =
+      this.name && this.empNo
+        ? `${this.name} [${this.empNo}]`
+        : this.name || '-';
+
+    this.fetchOwnerTickets();
+  }
 
   get totalOpen() {
     return this.projects.reduce((sum, p) => sum + p.open, 0);
@@ -174,15 +157,143 @@ export class OwnerComponent {
     return project?.name || '-';
   }
 
+  get isWaitSelected() {
+    return this.normalizeState(this.selectedTicket?.state) === 'wait';
+  }
+
+  get isOnProcessSelected() {
+    return this.normalizeState(this.selectedTicket?.state) === 'onprocess';
+  }
+
+  get shouldShowRemark() {
+    const selectedState = this.normalizeState(this.selectedTicket?.state);
+    const formState = this.inchargeForm.ticketStatus;
+
+    if (selectedState === 'wait') {
+      return formState === 'deny';
+    }
+
+    if (selectedState === 'onprocess') {
+      return formState === 'deny' || formState === 'complete';
+    }
+
+    return false;
+  }
+
   private getDefaultInchargeForm(): InchargeForm {
     return {
-      status: 'On Process',
-      remarkToRequester: '',
-      rootCause: '',
-      actionTaken: '',
-      expectedFinishDate: '',
-      evidenceFileName: ''
+      ticketStatus: '',
+      remarkToRequester: ''
     };
+  }
+
+  fetchOwnerTickets() {
+    if (!this.userId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing User',
+        text: 'ไม่พบ userId ของ Owner กรุณา login ใหม่'
+      });
+      return;
+    }
+
+    this.isLoadingOwnerTickets = true;
+
+    const body = {
+      userId: this.userId
+    };
+    
+    this.http.post<any>(`${config.apiServer}/api/ticket/owner/list`, body).subscribe({
+      next: (res) => {
+        const owner = res.owner;
+
+        if (owner?.display) {
+          this.ownerName = owner.display;
+        }
+
+        const projectRows = res.projects || [];
+        const ticketRows = res.results || [];
+
+        this.projects = projectRows.map((item: any) => ({
+          id: Number(item.id),
+          name: item.name || '-',
+          module: item.module || 'No description',
+          status: item.status || 'Offline',
+          open: Number(item.open || 0),
+          inProgress: Number(item.inProgress || 0),
+          resolved: Number(item.resolved || 0),
+          color: item.color || 'blue'
+        }));
+
+        this.tickets = ticketRows.map((item: any) => ({
+          id: Number(item.id),
+          ticketNo: item.ticketNo || '-',
+
+          projectId: Number(item.projectId || 0),
+          projectName: item.projectName || '-',
+          area: item.area || '-',
+
+          problemTitle: item.problemTitle || '-',
+          problemDetail: item.problemDetail || '-',
+
+          requestById: Number(item.requestById || 0),
+          requestByName: item.requestByName || '-',
+          requestByEmpNo: item.requestByEmpNo || '-',
+          requestByDisplay: item.requestByDisplay || '-',
+          requestAt: item.requestAt
+            ? this.formatRequestDate(new Date(item.requestAt))
+            : '-',
+
+          priority: (item.priority || 'Medium') as TicketPriority,
+          state: item.state || 'wait',
+
+          contact: item.contact || '',
+          reply: item.reply || '',
+
+          inchargeById: item.inchargeById || null,
+          inchargeByName: item.inchargeByName || '',
+          inchargeByEmpNo: item.inchargeByEmpNo || '',
+          inchargeByDisplay: item.inchargeByDisplay || '-',
+
+          attachments: item.attachments || [],
+
+          histories: (item.histories || []).map((h: any) => ({
+            id: Number(h.id),
+            ticketId: Number(h.ticketId),
+            state: h.state || '-',
+            inchargeById: h.inchargeById || null,
+            inchargeByName: h.inchargeByName || '',
+            inchargeByEmpNo: h.inchargeByEmpNo || '',
+            inchargeByDisplay: h.inchargeByDisplay || '-',
+            timeStmp: h.timeStmp
+              ? this.formatRequestDate(new Date(h.timeStmp))
+              : '-'
+          }))
+        }));
+
+        if (
+          this.selectedTicket &&
+          !this.tickets.some(t => t.id === this.selectedTicket?.id)
+        ) {
+          this.clearInchargeForm();
+        }
+      },
+      error: (err) => {
+        console.error(err);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Load Owner Tickets Failed',
+          text:
+            err.error?.message ||
+            err.error?.error ||
+            'ไม่สามารถโหลด Ticket ของ Owner ได้'
+        });
+      },
+      complete: () => {
+        this.isLoadingOwnerTickets = false;
+      }
+    });
   }
 
   selectProject(projectId: number | 'all') {
@@ -201,16 +312,28 @@ export class OwnerComponent {
     return this.selectedProjectId === projectId;
   }
 
+  canShowAction(ticket: OwnerTicket) {
+    const state = this.normalizeState(ticket.state);
+    return state === 'wait' || state === 'onprocess';
+  }
+
+  getActionLabel(ticket: OwnerTicket) {
+    const state = this.normalizeState(ticket.state);
+
+    if (state === 'wait') return 'Incharge';
+    if (state === 'onprocess') return 'Update';
+
+    return '';
+  }
+
   openInchargeForm(ticket: OwnerTicket) {
     this.selectedTicket = ticket;
 
+    const state = this.normalizeState(ticket.state);
+
     this.inchargeForm = {
-      status: ticket.status === 'Resolved' ? 'Complete' : 'On Process',
-      remarkToRequester: '',
-      rootCause: '',
-      actionTaken: '',
-      expectedFinishDate: '',
-      evidenceFileName: ''
+      ticketStatus: state === 'wait' ? 'onprocess' : 'complete',
+      remarkToRequester: ''
     };
   }
 
@@ -219,52 +342,297 @@ export class OwnerComponent {
     this.inchargeForm = this.getDefaultInchargeForm();
   }
 
-  submitIncharge() {
+  setInchargeStatus(status: InchargeSubmitStatus) {
+    this.inchargeForm.ticketStatus = status;
+
+    if (!this.shouldShowRemark) {
+      this.inchargeForm.remarkToRequester = '';
+    }
+  }
+
+  async submitIncharge() {
     if (!this.selectedTicket) return;
 
-    if (!this.inchargeForm.remarkToRequester.trim()) {
-      alert('กรุณากรอก Remark to Requester');
+    if (!this.userId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing User',
+        text: 'ไม่พบ userId ของ Owner กรุณา login ใหม่'
+      });
       return;
     }
 
-    if (this.inchargeForm.status === 'Complete' && !this.inchargeForm.actionTaken.trim()) {
-      alert('กรุณากรอก Action Taken เมื่อเลือก Complete');
+    if (!this.inchargeForm.ticketStatus) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Status',
+        text: 'กรุณาเลือก Status'
+      });
+      return;
+    }
+
+    if (this.shouldShowRemark && !this.inchargeForm.remarkToRequester.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Remark',
+        text: 'กรุณากรอก Remark to Requester'
+      });
       return;
     }
 
     const body = {
+      userId: this.userId,
       ticketId: this.selectedTicket.id,
-      ticketNo: this.selectedTicket.ticketNo,
-      status: this.inchargeForm.status,
-      remarkToRequester: this.inchargeForm.remarkToRequester,
-      rootCause: this.inchargeForm.rootCause,
-      actionTaken: this.inchargeForm.actionTaken,
-      expectedFinishDate: this.inchargeForm.expectedFinishDate,
-      evidenceFileName: this.inchargeForm.evidenceFileName
+      ticketStatus: this.inchargeForm.ticketStatus,
+      reply: this.shouldShowRemark ? this.inchargeForm.remarkToRequester.trim() : ''
     };
 
-    console.log('Submit Incharge:', body);
+    try {
+      const confirm = await Swal.fire({
+        icon: 'question',
+        title: 'Confirm Update Ticket',
+        html: `
+          <div style="text-align:left; line-height:1.8;">
+            <div><b>Ticket No:</b> ${this.escapeHtml(this.selectedTicket.ticketNo)}</div>
+            <div><b>Status:</b> ${this.escapeHtml(this.inchargeForm.ticketStatus)}</div>
+            ${
+              this.shouldShowRemark
+                ? `<div><b>Remark:</b> ${this.escapeHtml(this.inchargeForm.remarkToRequester)}</div>`
+                : ''
+            }
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+      });
 
-    const foundTicket = this.tickets.find(t => t.id === this.selectedTicket?.id);
+      if (!confirm.isConfirmed) return;
 
-    if (foundTicket) {
-      foundTicket.status = this.inchargeForm.status === 'Complete'
-        ? 'Resolved'
-        : 'In Progress';
+      Swal.fire({
+        title: 'Saving...',
+        text: 'กำลังบันทึกสถานะ Ticket',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      await firstValueFrom(
+        this.http.post(`${config.apiServer}/api/ticket/ownerIncharge`, body)
+      );
+
+      Swal.close();
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Update Success',
+        text: 'บันทึกสถานะ Ticket สำเร็จ'
+      });
+
+      this.clearInchargeForm();
+      this.fetchOwnerTickets();
+    } catch (err: any) {
+      Swal.close();
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text:
+          err.error?.message ||
+          err.error?.error ||
+          'ไม่สามารถบันทึกสถานะ Ticket ได้'
+      });
+
+      console.error(err);
     }
+  }
 
-    this.clearInchargeForm();
+  toggleTicketFiles(ticket: OwnerTicket) {
+    this.expandedTicketId =
+      this.expandedTicketId === ticket.id ? null : ticket.id;
+  }
+
+  openTicketDetail(ticket: OwnerTicket) {
+    const attachmentHtml = ticket.attachments.length
+      ? `
+        <div class="owner-detail-images">
+          ${ticket.attachments.map(file => `
+            <a href="${this.config.apiServer + file.fileUrl}" target="_blank" class="owner-detail-image-card">
+              <img src="${this.config.apiServer + file.fileUrl}" />
+              <div>${this.escapeHtml(file.fileName)}</div>
+            </a>
+          `).join('')}
+        </div>
+      `
+      : `<div class="owner-detail-empty">No attachment files</div>`;
+
+    const historyHtml = ticket.histories.length
+      ? ticket.histories.map(h => `
+          <div class="owner-history-item">
+            <div class="owner-history-dot"></div>
+            <div>
+              <div><b>${this.escapeHtml(h.state)}</b></div>
+              <div>By: ${this.escapeHtml(h.inchargeByDisplay || '-')}</div>
+              <div class="owner-history-time">${this.escapeHtml(h.timeStmp)}</div>
+            </div>
+          </div>
+        `).join('')
+      : `<div class="owner-detail-empty">No status history</div>`;
+
+    Swal.fire({
+      title: 'Ticket Detail',
+      width: 820,
+      confirmButtonText: 'Close',
+      html: `
+        <style>
+          .owner-detail-wrap {
+            text-align: left;
+            line-height: 1.75;
+          }
+
+          .owner-detail-card {
+            padding: 14px;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 14px;
+          }
+
+          .owner-detail-title {
+            font-weight: 950;
+            color: #1d4ed8;
+            margin-bottom: 8px;
+          }
+
+          .owner-detail-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+          }
+
+          .owner-detail-image-card {
+            display: block;
+            text-decoration: none;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+          }
+
+          .owner-detail-image-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            display: block;
+          }
+
+          .owner-detail-image-card div {
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .owner-history-item {
+            display: grid;
+            grid-template-columns: 16px 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+          }
+
+          .owner-history-dot {
+            width: 11px;
+            height: 11px;
+            margin-top: 8px;
+            border-radius: 999px;
+            background: #2563eb;
+          }
+
+          .owner-history-time,
+          .owner-detail-empty {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+          }
+        </style>
+
+        <div class="owner-detail-wrap">
+          <div class="owner-detail-card">
+            <div><b>Ticket No:</b> ${this.escapeHtml(ticket.ticketNo)}</div>
+            <div><b>Project:</b> ${this.escapeHtml(ticket.projectName)}</div>
+            <div><b>Area:</b> ${this.escapeHtml(ticket.area)}</div>
+            <div><b>Request By:</b> ${this.escapeHtml(ticket.requestByDisplay)}</div>
+            <div><b>Request At:</b> ${this.escapeHtml(ticket.requestAt)}</div>
+            <div><b>Contact Request:</b> ${this.escapeHtml(ticket.contact || '-')}</div>
+            <div><b>Current State:</b> ${this.escapeHtml(ticket.state)}</div>
+          </div>
+
+          <div class="owner-detail-card">
+            <div class="owner-detail-title">Problem</div>
+            <div><b>Title:</b> ${this.escapeHtml(ticket.problemTitle)}</div>
+            <div><b>Detail:</b><br>${this.escapeHtml(ticket.problemDetail || '-')}</div>
+          </div>
+
+          <div class="owner-detail-card">
+            <div class="owner-detail-title">Reply</div>
+            <div>${this.escapeHtml(ticket.reply || '-')}</div>
+          </div>
+
+          <div class="owner-detail-card">
+            <div class="owner-detail-title">Attachments</div>
+            ${attachmentHtml}
+          </div>
+
+          <div class="owner-detail-card">
+            <div class="owner-detail-title">Ticket Status Timeline</div>
+            ${historyHtml}
+          </div>
+        </div>
+      `
+    });
   }
 
   getPriorityClass(priority: TicketPriority) {
-    return priority.toLowerCase();
+    return String(priority || '').toLowerCase();
   }
 
-  getStatusClass(status: TicketStatus) {
-    return status.toLowerCase().replace(' ', '-');
+  getStatusClass(status: string) {
+    return this.normalizeState(status).replaceAll(' ', '-');
   }
 
   getProjectStatusClass(status: OwnerProjectStatus) {
-    return status.toLowerCase();
+    return String(status || '').toLowerCase();
+  }
+
+  private normalizeState(state: string | undefined | null) {
+    return String(state || '').toLowerCase().replaceAll(' ', '');
+  }
+
+  private formatRequestDate(date: Date) {
+    if (!date || Number.isNaN(date.getTime())) return '-';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hh}:${mm}`;
+  }
+
+  private escapeHtml(value: string) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 }
