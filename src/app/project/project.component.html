@@ -1,147 +1,230 @@
 <div class="project-page">
-    <div class="project-header">
-      <div class="project-header-left">
-        <div class="project-header-icon">
-          <i class="fas fa-sitemap"></i>
-        </div>
-  
-        <div>
-          <div class="section-label">PROJECT MASTER</div>
-          <h1>Project Management</h1>
-          <p>จัดการ Project ที่ใช้รับ Ticket และกำหนด Owner ของระบบ</p>
-        </div>
+  <div class="project-header">
+    <div class="project-header-left">
+      <div class="project-header-icon">
+        <i class="fas fa-sitemap"></i>
       </div>
-  
-      <button
-        type="button"
-        class="add-project-btn"
-        (click)="openCreateProjectModal()"
-        [disabled]="isLoading"
-      >
-        @if (isLoading) {
-          <i class="fas fa-spinner fa-spin"></i>
-          Loading...
-        } @else {
-          <i class="fas fa-plus"></i>
-          Add Project
-        }
-      </button>
-    </div>
-  
-    <div class="project-toolbar">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          placeholder="Search project name, description, email, phone..."
-          [(ngModel)]="searchText"
-        />
-  
-        @if (searchText.trim().length > 0) {
-          <button type="button" class="clear-search-btn" (click)="clearSearch()">
-            <i class="fas fa-times"></i>
-          </button>
-        }
-      </div>
-  
-      <div class="project-count-pill">
-        {{ filteredProjects.length }} Projects
+
+      <div>
+        <div class="section-label">PROJECT MASTER</div>
+        <h1>Project Management</h1>
+        <p>จัดการ Project ที่ใช้รับ Ticket และกำหนด Owner ของระบบ</p>
       </div>
     </div>
-  
-    <div class="project-card">
-      <div class="project-table-wrap">
-        <table class="project-table">
-          <thead>
+
+    <button
+      type="button"
+      class="add-project-btn"
+      (click)="openCreateProjectModal()"
+      [disabled]="isLoading"
+    >
+      @if (isLoading) {
+        <i class="fas fa-spinner fa-spin"></i>
+        Loading...
+      } @else {
+        <i class="fas fa-plus"></i>
+        Add Project
+      }
+    </button>
+  </div>
+
+  <div class="project-toolbar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+
+      <input
+        type="text"
+        placeholder="Search project name, description, email, phone..."
+        [(ngModel)]="searchText"
+      />
+
+      @if (searchText.trim().length > 0) {
+        <button type="button" class="clear-search-btn" (click)="clearSearch()">
+          <i class="fas fa-times"></i>
+        </button>
+      }
+    </div>
+
+    <div class="project-count-pill">
+      {{ filteredProjects.length }} Projects
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-table-wrap">
+      <table class="project-table">
+        <thead>
+          <tr>
+            <th width="70">#</th>
+            <th>Project Name</th>
+            <th>Owner</th>
+            <th>Description</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th width="120">Status</th>
+            <th>Members</th>
+            <th width="160">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (isLoading) {
             <tr>
-              <th width="70">#</th>
-              <th>Project Name</th>
-              <th>Owner</th>
-              <th>Description</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th width="120">Status</th>
+              <td colspan="9">
+                <div class="empty-state">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <h3>Loading Projects...</h3>
+                  <p>กำลังโหลดข้อมูล Project</p>
+                </div>
+              </td>
             </tr>
-          </thead>
-  
-          <tbody>
-            @if (isLoading) {
+          } @else {
+            @for (item of filteredProjects; track item.id; let i = $index) {
               <tr>
-                <td colspan="6">
-                  <div class="empty-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <h3>Loading Projects...</h3>
-                    <p>กำลังโหลดข้อมูล Project</p>
+                <td>
+                  <span class="index-pill">{{ i + 1 }}</span>
+                </td>
+
+                <td>
+                  <div class="project-name-cell">
+                    <div class="project-mini-icon">
+                      <i class="fas fa-layer-group"></i>
+                    </div>
+
+                    <div>
+                      <strong>{{ item.name }}</strong>
+                      <span>Project ID: {{ item.id }}</span>
+                    </div>
                   </div>
                 </td>
-              </tr>
-            } @else {
-              @for (item of filteredProjects; track item.id; let i = $index) {
-                <tr>
-                  <td>
-                    <span class="index-pill">{{ i + 1 }}</span>
-                  </td>
-  
-                  <td>
-                    <div class="project-name-cell">
-                      <div class="project-mini-icon">
-                        <i class="fas fa-layer-group"></i>
-                      </div>
-  
-                      <div>
-                        <strong>{{ item.name }}</strong>
-                        
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="owner-cell">
-                      <strong>{{ item.ownerName || '-' }}</strong>
-                      <span>{{ item.ownerEmpNo || '-' }}</span>
-                    </div>
-                  </td>
-  
-                  <td>
-                    <div class="project-desc">
-                      {{ item.description || '-' }}
-                    </div>
-                  </td>
-  
-                  <td>
-                    <span class="contact-text">
-                      {{ item.email || '-' }}
-                    </span>
-                  </td>
-  
-                  <td>
-                    <span class="contact-text">
-                      {{ item.phone || '-' }}
-                    </span>
-                  </td>
-  
-                  <td>
-                    <span
-                      class="status-pill"
-                      [ngClass]="getProjectStateClass(item.projectState)"
+
+                <td>
+                  <div class="owner-cell">
+                    <strong>{{ item.ownerName || '-' }}</strong>
+                    <span>{{ item.ownerEmpNo || '-' }}</span>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="project-desc">
+                    {{ item.description || '-' }}
+                  </div>
+                </td>
+
+                <td>
+                  <span class="contact-text">
+                    {{ item.email || '-' }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="contact-text">
+                    {{ item.phone || '-' }}
+                  </span>
+                </td>
+
+                <td>
+                  <span
+                    class="status-pill"
+                    [ngClass]="getProjectStateClass(item.projectState)"
+                  >
+                    {{ item.projectState || '-' }}
+                  </span>
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="member-toggle-btn"
+                    (click)="toggleMembers(item)"
+                  >
+                    <i
+                      class="fas"
+                      [ngClass]="expandedProjectId === item.id ? 'fa-chevron-down' : 'fa-chevron-right'"
+                    ></i>
+
+                    {{ item.memberCount || 0 }} Members
+                  </button>
+                </td>
+
+                <td>
+                  @if (canAddMember(item)) {
+                    <button
+                      type="button"
+                      class="add-member-btn"
+                      (click)="openAddMemberModal(item)"
                     >
-                      {{ item.projectState || '-' }}
-                    </span>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="7">
-                    <div class="empty-state">
-                      <i class="fas fa-folder-open"></i>
-                      <h3>No Project Found</h3>
-                      <p>ยังไม่มี Project หรือไม่พบข้อมูลตามคำค้นหา</p>
+                      <i class="fas fa-user-plus"></i>
+                      Add Member
+                    </button>
+                  } @else {
+                    <span class="not-owner-text">Owner only</span>
+                  }
+                </td>
+              </tr>
+
+              @if (expandedProjectId === item.id) {
+                <tr class="member-row">
+                  <td colspan="9">
+                    <div class="member-panel">
+                      <div class="member-panel-title">
+                        <i class="fas fa-users"></i>
+                        Members in {{ item.name }}
+                      </div>
+
+                      @if (item.members.length > 0) {
+                        <div class="member-list">
+                          @for (member of item.members; track member.id) {
+                            <div class="member-card">
+                              <div class="member-avatar">
+                                <i class="fas fa-user"></i>
+                              </div>
+
+                              <div class="member-card-body">
+                                <strong>{{ member.display }}</strong>
+
+                                <span>
+                                  <i class="fas fa-id-badge"></i>
+                                  Emp No: {{ member.empNo || '-' }}
+                                </span>
+
+                                <span>
+                                  <i class="fas fa-envelope"></i>
+                                  Email: {{ member.email || '-' }}
+                                </span>
+
+                                <span>
+                                  <i class="fas fa-phone"></i>
+                                  Phone: {{ member.phone || '-' }}
+                                </span>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="member-empty">
+                          <i class="fas fa-user-slash"></i>
+                          ยังไม่มี Member ใน Project นี้
+                        </div>
+                      }
                     </div>
                   </td>
                 </tr>
               }
+            } @empty {
+              <tr>
+                <td colspan="9">
+                  <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No Project Found</h3>
+                    <p>ยังไม่มี Project หรือไม่พบข้อมูลตามคำค้นหา</p>
+                  </div>
+                </td>
+              </tr>
             }
-          </tbody>
-        </table>
-      </div>
+          }
+        </tbody>
+      </table>
     </div>
   </div>
+</div>

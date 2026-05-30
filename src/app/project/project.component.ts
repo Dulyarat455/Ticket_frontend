@@ -5,6 +5,21 @@ import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 import config from '../../config';
 
+
+
+
+type ProjectMemberRow = {
+  id: number;
+  projectId: number;
+  userId: number;
+  name: string;
+  empNo: string;
+  display: string;
+  email: string;
+  phone: string;
+  timeStmp?: string;
+};
+
 type ProjectRow = {
   id: number;
   name: string;
@@ -20,6 +35,9 @@ type ProjectRow = {
   // latest ProjectStatus
   projectState?: string;
   projectStateTime?: string | null;
+
+  members: ProjectMemberRow[];
+  memberCount: number;
 };
 
 
@@ -48,9 +66,13 @@ export class ProjectComponent implements OnInit {
 
   userId: number | null = null;
 
+  expandedProjectId: number | null = null;
+  users: any[] = [];
+
   ngOnInit() {
     this.userId = Number(localStorage.getItem('ticketPress_userId')) || null;
     this.loadProjects();
+    this.loadUsers();
   }
 
   get filteredProjects() {
@@ -465,6 +487,119 @@ export class ProjectComponent implements OnInit {
       }
     });
   }
+
+
+
+
+
+  canAddMember(project: ProjectRow) {
+    return this.userId != null && project.userId === this.userId;
+  }
+  
+  toggleMembers(project: ProjectRow) {
+    this.expandedProjectId =
+      this.expandedProjectId === project.id ? null : project.id;
+  }
+  
+  loadUsers() {
+    this.http.get<any>(`${config.apiServer}/api/user/list`).subscribe({
+      next: (res) => {
+        this.users = res.results || [];
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
+  }
+
+
+  
+  async openAddMemberModal(project: ProjectRow) {
+    if (!this.canAddMember(project)) return;
+  
+    if (!this.users.length) {
+      this.loadUsers();
+    }
+  
+    const userOptions = this.users
+      .map(u => `
+        <option value="${u.id}">
+          ${this.escapeHtml(u.name || '-')} ${u.empNo ? `[${this.escapeHtml(u.empNo)}]` : ''}
+        </option>
+      `)
+      .join('');
+  
+    const result = await Swal.fire({
+      title: 'Add Member',
+      width: 620,
+      showCancelButton: true,
+      confirmButtonText: 'Add Member',
+      cancelButtonText: 'Cancel',
+      html: `
+        <div style="text-align:left">
+          <div style="margin-bottom:14px">
+            <b>Project:</b> ${this.escapeHtml(project.name)}
+          </div>
+  
+          <label>User <span style="color:red">*</span></label>
+          <select id="memberUserId" class="swal2-input" style="width:100%">
+            <option value="">Select user</option>
+            ${userOptions}
+          </select>
+  
+          <label>Email</label>
+          <input id="memberEmail" class="swal2-input" placeholder="email">
+  
+          <label>Phone</label>
+          <input id="memberPhone" class="swal2-input" placeholder="phone">
+        </div>
+      `,
+      preConfirm: () => {
+        const userId = Number((document.getElementById('memberUserId') as HTMLSelectElement)?.value || 0);
+        const email = (document.getElementById('memberEmail') as HTMLInputElement)?.value.trim();
+        const phone = (document.getElementById('memberPhone') as HTMLInputElement)?.value.trim();
+  
+        if (!userId) {
+          Swal.showValidationMessage('กรุณาเลือก User');
+          return false;
+        }
+  
+        return {
+          projectId: project.id,
+          userId,
+          email: email || '',
+          phone: phone || ''
+        };
+      }
+    });
+  
+    if (!result.isConfirmed || !result.value) return;
+  
+    this.http.post<any>(`${config.apiServer}/api/project/addMember`, result.value).subscribe({
+      next: async () => {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Add Member Success'
+        });
+  
+        this.loadProjects();
+      },
+      error: (err) => {
+        const message = err.error?.message || err.error?.error || 'เพิ่ม Member ไม่สำเร็จ';
+  
+        Swal.fire({
+          icon: 'error',
+          title: 'Add Member Failed',
+          text: message
+        });
+      }
+    });
+  }
+
+
+
+
+
 
   clearSearch() {
     this.searchText = '';
