@@ -19,24 +19,25 @@
   
       <div class="owner-summary-grid">
         <div class="summary-box open">
-          <span>Open</span>
+          <span>Wait</span>
           <strong>{{ totalOpen }}</strong>
         </div>
   
         <div class="summary-box progress">
-          <span>In Progress</span>
+          <span>On-Progress</span>
           <strong>{{ totalInProgress }}</strong>
         </div>
   
         <div class="summary-box resolved">
-          <span>Resolved</span>
+          <span>Complete</span>
           <strong>{{ totalResolved }}</strong>
         </div>
-  
-        <div class="summary-box total">
-          <span>Active Tickets</span>
-          <strong>{{ totalActiveTickets }}</strong>
+
+        <div class="summary-box deny">
+          <span>Deny</span>
+          <strong>{{ totalDeny }}</strong>
         </div>
+
       </div>
     </section>
   
@@ -87,7 +88,7 @@
   
               <p>{{ project.module }}</p>
   
-              <div class="mini-stats">
+              <div class="mini-stats mini-stats-4">
                 <div>
                   <span>Open</span>
                   <strong>{{ project.open }}</strong>
@@ -100,6 +101,11 @@
                   <span>Resolved</span>
                   <strong>{{ project.resolved }}</strong>
                 </div>
+                <div>
+                  <span>Deny</span>
+                  <strong>{{ project.deny }}</strong>
+                </div>
+
               </div>
             </div>
           </button>

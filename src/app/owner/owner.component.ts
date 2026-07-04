@@ -20,6 +20,7 @@ type OwnerProject = {
   open: number;
   inProgress: number;
   resolved: number;
+  deny: number;
   color: 'blue' | 'purple' | 'orange' | 'green';
 };
 
@@ -137,6 +138,12 @@ export class OwnerComponent implements OnInit {
     return this.projects.reduce((sum, p) => sum + p.resolved, 0);
   }
 
+
+  get totalDeny() {
+    return this.projects.reduce((sum, p) => sum + p.deny, 0);
+  }
+
+
   get totalActiveTickets() {
     return this.totalOpen + this.totalInProgress;
   }
@@ -214,6 +221,7 @@ export class OwnerComponent implements OnInit {
           open: Number(item.open || 0),
           inProgress: Number(item.inProgress || 0),
           resolved: Number(item.resolved || 0),
+          deny: Number(item.deny || 0),
           color: item.color || 'blue'
         }));
 
@@ -501,6 +509,7 @@ export class OwnerComponent implements OnInit {
             text-align: left;
             line-height: 1.75;
           }
+
 
           .owner-detail-card {
             padding: 14px;

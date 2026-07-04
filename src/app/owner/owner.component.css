@@ -124,6 +124,12 @@
   .summary-box.total {
     background: #f8fafc;
   }
+
+
+  .summary-box.deny {
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
   
   /* =========================
      MAIN CONTENT
@@ -207,9 +213,9 @@
   }
   
   .owner-project-card {
-    width: 100%;
-    min-height: 142px;
-    padding: 18px;
+    width: 100%;  
+    min-height: 118px;
+    padding: 16px 18px;
     border-radius: 22px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
@@ -280,7 +286,7 @@
   }
   
   .project-card-body p {
-    margin: 8px 0 14px;
+    margin: 6px 0 12px;
     color: #64748b;
     font-size: 13px;
     font-weight: 750;
@@ -311,13 +317,18 @@
   
   .mini-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
   }
   
+  .mini-stats-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
   .mini-stats div {
-    padding: 10px;
-    border-radius: 14px;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 13px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
   }
@@ -325,16 +336,20 @@
   .mini-stats span {
     display: block;
     color: #64748b;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 850;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .mini-stats strong {
     display: block;
     margin-top: 4px;
     color: #0f172a;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 950;
+    line-height: 1;
   }
   
   /* =========================
@@ -846,6 +861,10 @@
     }
   
     .mini-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .mini-stats-4 {
       grid-template-columns: 1fr;
     }
   
