@@ -993,3 +993,18 @@
   .owner-ticket-table {
     min-width: 1220px;
   }
+
+
+
+
+
+
+  .status-choice-group-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 720px) {
+    .status-choice-group-3 {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -38,6 +38,7 @@ type TicketHistory = {
   inchargeByName?: string;
   inchargeByEmpNo?: string;
   inchargeByDisplay?: string;
+  remark?: string;
   timeStmp: string;
 };
 
@@ -167,17 +168,8 @@ export class OwnerComponent implements OnInit {
 
   get shouldShowRemark() {
     const selectedState = this.normalizeState(this.selectedTicket?.state);
-    const formState = this.inchargeForm.ticketStatus;
-
-    if (selectedState === 'wait') {
-      return formState === 'deny';
-    }
-
-    if (selectedState === 'onprocess') {
-      return formState === 'deny' || formState === 'complete';
-    }
-
-    return false;
+  
+    return selectedState === 'wait' || selectedState === 'onprocess';
   }
 
   private getDefaultInchargeForm(): InchargeForm {
@@ -265,6 +257,7 @@ export class OwnerComponent implements OnInit {
             inchargeByName: h.inchargeByName || '',
             inchargeByEmpNo: h.inchargeByEmpNo || '',
             inchargeByDisplay: h.inchargeByDisplay || '-',
+            remark: h.remark || '',
             timeStmp: h.timeStmp
               ? this.formatRequestDate(new Date(h.timeStmp))
               : '-'
@@ -328,11 +321,11 @@ export class OwnerComponent implements OnInit {
 
   openInchargeForm(ticket: OwnerTicket) {
     this.selectedTicket = ticket;
-
+  
     const state = this.normalizeState(ticket.state);
-
+  
     this.inchargeForm = {
-      ticketStatus: state === 'wait' ? 'onprocess' : 'complete',
+      ticketStatus: state === 'wait' ? 'onprocess' : 'onprocess',
       remarkToRequester: ''
     };
   }
@@ -344,10 +337,6 @@ export class OwnerComponent implements OnInit {
 
   setInchargeStatus(status: InchargeSubmitStatus) {
     this.inchargeForm.ticketStatus = status;
-
-    if (!this.shouldShowRemark) {
-      this.inchargeForm.remarkToRequester = '';
-    }
   }
 
   async submitIncharge() {
@@ -469,14 +458,34 @@ export class OwnerComponent implements OnInit {
       `
       : `<div class="owner-detail-empty">No attachment files</div>`;
 
-    const historyHtml = ticket.histories.length
+      const historyHtml = ticket.histories.length
       ? ticket.histories.map(h => `
           <div class="owner-history-item">
             <div class="owner-history-dot"></div>
+    
             <div>
-              <div><b>${this.escapeHtml(h.state)}</b></div>
-              <div>By: ${this.escapeHtml(h.inchargeByDisplay || '-')}</div>
-              <div class="owner-history-time">${this.escapeHtml(h.timeStmp)}</div>
+              <div>
+                <b>${this.escapeHtml(h.state)}</b>
+              </div>
+    
+              <div>
+                By:
+                ${this.escapeHtml(h.inchargeByDisplay || '-')}
+              </div>
+    
+              ${
+                h.remark
+                  ? `
+                    <div class="owner-history-remark">
+                      ${this.escapeHtml(h.remark)}
+                    </div>
+                  `
+                  : ''
+              }
+    
+              <div class="owner-history-time">
+                ${this.escapeHtml(h.timeStmp)}
+              </div>
             </div>
           </div>
         `).join('')
@@ -559,6 +568,18 @@ export class OwnerComponent implements OnInit {
             color: #64748b;
             font-size: 12px;
             font-weight: 800;
+          }
+          
+          .owner-history-remark {
+          margin-top: 8px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: #eff6ff;
+          border-left: 4px solid #2563eb;
+          color: #0f172a;
+          font-size: 13px;
+          font-weight: 700;
+          white-space: pre-wrap;
           }
         </style>
 
