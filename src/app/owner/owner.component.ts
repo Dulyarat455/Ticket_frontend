@@ -467,37 +467,44 @@ export class OwnerComponent implements OnInit {
       : `<div class="owner-detail-empty">No attachment files</div>`;
 
       const historyHtml = ticket.histories.length
-      ? ticket.histories.map(h => `
-          <div class="owner-history-item">
-            <div class="owner-history-dot"></div>
-    
+  ? ticket.histories.map(h => {
+      const stateClass = this.getStatusClass(h.state);
+      const stateLabel = this.getStateDisplayName(h.state);
+
+      return `
+        <div class="owner-history-item owner-history-${stateClass}">
+          <div class="owner-history-dot ${stateClass}"></div>
+
+          <div class="owner-history-content">
             <div>
-              <div>
-                <b>${this.escapeHtml(h.state)}</b>
-              </div>
-    
-              <div>
-                By:
-                ${this.escapeHtml(h.inchargeByDisplay || '-')}
-              </div>
-    
-              ${
-                h.remark
-                  ? `
-                    <div class="owner-history-remark">
-                      ${this.escapeHtml(h.remark)}
-                    </div>
-                  `
-                  : ''
-              }
-    
-              <div class="owner-history-time">
-                ${this.escapeHtml(h.timeStmp)}
-              </div>
+              <span class="owner-history-state ${stateClass}">
+                ${this.escapeHtml(stateLabel)}
+              </span>
+            </div>
+
+            <div class="owner-history-by">
+              By:
+              ${this.escapeHtml(h.inchargeByDisplay || '-')}
+            </div>
+
+            ${
+              h.remark
+                ? `
+                  <div class="owner-history-remark ${stateClass}">
+                    ${this.escapeHtml(h.remark)}
+                  </div>
+                `
+                : ''
+            }
+
+            <div class="owner-history-time">
+              ${this.escapeHtml(h.timeStmp)}
             </div>
           </div>
-        `).join('')
-      : `<div class="owner-detail-empty">No status history</div>`;
+        </div>
+      `;
+    }).join('')
+  : `<div class="owner-detail-empty">No status history</div>`;
 
     Swal.fire({
       title: 'Ticket Detail',
@@ -557,38 +564,125 @@ export class OwnerComponent implements OnInit {
             text-overflow: ellipsis;
           }
 
-          .owner-history-item {
-            display: grid;
-            grid-template-columns: 16px 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-          }
+         .owner-history-item {
+          display: grid;
+          grid-template-columns: 18px 1fr;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
 
-          .owner-history-dot {
-            width: 11px;
-            height: 11px;
-            margin-top: 8px;
-            border-radius: 999px;
-            background: #2563eb;
-          }
+        .owner-history-dot {
+          width: 12px;
+          height: 12px;
+          margin-top: 10px;
+          border-radius: 999px;
+          background: #2563eb;
+          box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+        }
 
-          .owner-history-time,
-          .owner-detail-empty {
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 800;
-          }
-          
-          .owner-history-remark {
-          margin-top: 8px;
-          padding: 10px 12px;
-          border-radius: 10px;
+        .owner-history-dot.wait {
+          background: #f59e0b;
+          box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
+        }
+
+        .owner-history-dot.onprocess {
+          background: #2563eb;
+          box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.14);
+        }
+
+        .owner-history-dot.complete {
+          background: #10b981;
+          box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.14);
+        }
+
+        .owner-history-dot.deny {
+          background: #ef4444;
+          box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.14);
+        }
+
+        .owner-history-content {
+          min-width: 0;
+        }
+
+        .owner-history-state {
+          display: inline-flex;
+          align-items: center;
+          min-height: 30px;
+          padding: 0 13px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 950;
+          letter-spacing: 0.5px;
+        }
+
+        .owner-history-state.wait {
+          color: #92400e;
+          background: #fef3c7;
+          border: 1px solid #fcd34d;
+        }
+
+        .owner-history-state.onprocess {
+          color: #1d4ed8;
           background: #eff6ff;
-          border-left: 4px solid #2563eb;
+          border: 1px solid #bfdbfe;
+        }
+
+        .owner-history-state.complete {
+          color: #047857;
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+        }
+
+        .owner-history-state.deny {
+          color: #b91c1c;
+          background: #fee2e2;
+          border: 1px solid #fecaca;
+        }
+
+        .owner-history-by {
+          margin-top: 7px;
+          color: #475569;
+          font-size: 13px;
+          font-weight: 850;
+        }
+
+        .owner-history-time,
+        .owner-detail-empty {
+          margin-top: 7px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 850;
+        }
+
+        .owner-history-remark {
+          margin-top: 10px;
+          padding: 12px 14px;
+          border-radius: 13px;
           color: #0f172a;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
           white-space: pre-wrap;
+        }
+
+        .owner-history-remark.wait {
+          background: #fffbeb;
+          border-left: 5px solid #f59e0b;
+        }
+
+        .owner-history-remark.onprocess {
+          background: #eff6ff;
+          border-left: 5px solid #2563eb;
+        }
+
+        .owner-history-remark.complete {
+          background: #ecfdf5;
+          border-left: 5px solid #10b981;
+        }
+
+        .owner-history-remark.deny {
+          background: #fef2f2;
+          border-left: 5px solid #ef4444;
+        }
           }
         </style>
 
@@ -626,6 +720,17 @@ export class OwnerComponent implements OnInit {
         </div>
       `
     });
+  }
+
+  getStateDisplayName(state: string) {
+    const value = this.normalizeState(state);
+  
+    if (value === 'wait') return 'WAIT';
+    if (value === 'onprocess') return 'ON PROCESS';
+    if (value === 'complete') return 'COMPLETE';
+    if (value === 'deny') return 'DENY';
+  
+    return String(state || '-').toUpperCase();
   }
 
   getPriorityClass(priority: TicketPriority) {

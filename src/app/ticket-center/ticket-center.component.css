@@ -662,10 +662,21 @@
     color: #ffffff;
     cursor: pointer;
     box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
+  
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  
+    transition: 0.18s ease;
   }
   
   .ticket-detail-btn:hover {
     transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(37, 99, 235, 0.24);
+  }
+  
+  .ticket-detail-btn i {
+    font-size: 15px;
   }
   
   .ticket-file-row td {
@@ -739,4 +750,30 @@
   .ticket-status-pill.resolved {
     background: #d1fae5;
     color: #047857;
+  }
+
+
+
+  .ticket-status-pill.wait {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+  }
+  
+  .ticket-status-pill.onprocess {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+  
+  .ticket-status-pill.complete {
+    background: #d1fae5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+  }
+  
+  .ticket-status-pill.deny {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
   }

@@ -43,6 +43,21 @@ type TicketAttachment = {
   fileUrl: string;
 };
 
+
+type TicketHistory = {
+  id: number;
+  ticketId: number;
+  state: string;
+  inchargeById?: number | null;
+  inchargeByName?: string;
+  inchargeByEmpNo?: string;
+  inchargeByDisplay?: string;
+  remark?: string;
+  timeStmp: string;
+};
+
+
+
 type TicketRow = {
   id: number;
   ticketNo: string;
@@ -71,6 +86,9 @@ type TicketRow = {
   inchargeByDisplay?: string;
 
   attachments: TicketAttachment[];
+
+  reply: string;
+  histories: TicketHistory[];
 };
 
 type CreateTicketForm = {
@@ -198,7 +216,23 @@ export class TicketCenterComponent implements OnInit {
           inchargeByEmpNo: item.inchargeByEmpNo || '',
           inchargeByDisplay: item.inchargeByDisplay || '-',
 
-          attachments: item.attachments || []
+          attachments: item.attachments || [],
+
+          histories: (item.histories || []).map((h: any) => ({
+            id: Number(h.id),
+            ticketId: Number(h.ticketId),
+            state: h.state || '-',
+            inchargeById: h.inchargeById || null,
+            inchargeByName: h.inchargeByName || '',
+            inchargeByEmpNo: h.inchargeByEmpNo || '',
+            inchargeByDisplay: h.inchargeByDisplay || '-',
+            remark: h.remark || '',
+            timeStmp: h.timeStmp
+              ? this.formatRequestDate(new Date(h.timeStmp))
+              : '-'
+          }))
+          
+
         }));
 
         this.updateStatsFromTickets();
@@ -223,19 +257,17 @@ export class TicketCenterComponent implements OnInit {
 
   private updateStatsFromTickets() {
     const waitCount = this.tickets.filter(t =>
-      String(t.state || '').toLowerCase() === 'wait'
+      this.normalizeState(t.state) === 'wait'
     ).length;
-
-    const inProgressCount = this.tickets.filter(t => {
-      const state = String(t.state || '').toLowerCase();
-      return state === 'on-process' || state === 'in-progress' || state === 'process';
-    }).length;
-
-    const resolvedCount = this.tickets.filter(t => {
-      const state = String(t.state || '').toLowerCase();
-      return state === 'complete' || state === 'resolved' || state === 'done';
-    }).length;
-
+  
+    const inProgressCount = this.tickets.filter(t =>
+      this.normalizeState(t.state) === 'onprocess'
+    ).length;
+  
+    const resolvedCount = this.tickets.filter(t =>
+      this.normalizeState(t.state) === 'complete'
+    ).length;
+  
     this.stats = {
       open: waitCount,
       inProgress: inProgressCount,
@@ -249,12 +281,61 @@ export class TicketCenterComponent implements OnInit {
   }
 
   openTicketDetail(ticket: TicketRow) {
-    const stateText = ticket.state || '-';
-    const inchargeText = ticket.inchargeByDisplay || '-';
-
+    const attachmentHtml = ticket.attachments.length
+      ? `
+        <div class="ticket-detail-images">
+          ${ticket.attachments.map(file => `
+            <a href="${this.config.apiServer + file.fileUrl}" target="_blank" class="ticket-detail-image-card">
+              <img src="${this.config.apiServer + file.fileUrl}" />
+              <div>${this.escapeHtml(file.fileName)}</div>
+            </a>
+          `).join('')}
+        </div>
+      `
+      : `<div class="ticket-detail-empty">No attachment files</div>`;
+  
+    const historyHtml = ticket.histories.length
+      ? ticket.histories.map(h => {
+          const stateClass = this.getTicketStatusClass(h.state);
+          const stateLabel = this.getStateDisplayName(h.state);
+  
+          return `
+            <div class="ticket-history-item">
+              <div class="ticket-history-dot ${stateClass}"></div>
+  
+              <div class="ticket-history-content">
+                <div>
+                  <span class="ticket-history-state ${stateClass}">
+                    ${this.escapeHtml(stateLabel)}
+                  </span>
+                </div>
+  
+                <div class="ticket-history-by">
+                  By: ${this.escapeHtml(h.inchargeByDisplay || '-')}
+                </div>
+  
+                ${
+                  h.remark
+                    ? `
+                      <div class="ticket-history-remark ${stateClass}">
+                        ${this.escapeHtml(h.remark)}
+                      </div>
+                    `
+                    : ''
+                }
+  
+                <div class="ticket-history-time">
+                  ${this.escapeHtml(h.timeStmp)}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `<div class="ticket-detail-empty">No status history</div>`;
+  
     Swal.fire({
       title: 'Ticket Detail',
-      width: 760,
+      width: 820,
       confirmButtonText: 'Close',
       buttonsStyling: false,
       customClass: {
@@ -268,7 +349,7 @@ export class TicketCenterComponent implements OnInit {
             padding: 0 0 22px 0 !important;
             overflow: hidden;
           }
-
+  
           .ticket-detail-confirm {
             border-radius: 14px !important;
             background: linear-gradient(135deg, #2563eb, #0891b2) !important;
@@ -277,13 +358,13 @@ export class TicketCenterComponent implements OnInit {
             padding: 11px 24px !important;
             border: 0 !important;
           }
-
-          .ticket-detail-box {
+  
+          .ticket-detail-wrap {
             text-align: left;
-            line-height: 1.8;
+            line-height: 1.75;
             padding: 4px 6px 12px;
           }
-
+  
           .ticket-detail-card {
             padding: 14px;
             border-radius: 16px;
@@ -291,46 +372,192 @@ export class TicketCenterComponent implements OnInit {
             border: 1px solid #e2e8f0;
             margin-bottom: 14px;
           }
-
-          .ticket-detail-card.problem {
-            background: #eff6ff;
-            border-color: #bfdbfe;
-          }
-
-          .ticket-detail-card.incharge {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-          }
-
+  
           .ticket-detail-title {
             font-weight: 950;
             color: #1d4ed8;
             margin-bottom: 8px;
           }
-
-          .ticket-detail-title.dark {
+  
+          .ticket-detail-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+          }
+  
+          .ticket-detail-image-card {
+            display: block;
+            text-decoration: none;
             color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+          }
+  
+          .ticket-detail-image-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            display: block;
+          }
+  
+          .ticket-detail-image-card div {
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+  
+          .ticket-history-item {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+  
+          .ticket-history-dot {
+            width: 12px;
+            height: 12px;
+            margin-top: 10px;
+            border-radius: 999px;
+            background: #2563eb;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+          }
+  
+          .ticket-history-dot.wait {
+            background: #f59e0b;
+            box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
+          }
+  
+          .ticket-history-dot.onprocess {
+            background: #2563eb;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.14);
+          }
+  
+          .ticket-history-dot.complete {
+            background: #10b981;
+            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.14);
+          }
+  
+          .ticket-history-dot.deny {
+            background: #ef4444;
+            box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.14);
+          }
+  
+          .ticket-history-state {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: 0.5px;
+          }
+  
+          .ticket-history-state.wait {
+            color: #92400e;
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+          }
+  
+          .ticket-history-state.onprocess {
+            color: #1d4ed8;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+          }
+  
+          .ticket-history-state.complete {
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+          }
+  
+          .ticket-history-state.deny {
+            color: #b91c1c;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+          }
+  
+          .ticket-history-by {
+            margin-top: 7px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 850;
+          }
+  
+          .ticket-history-time,
+          .ticket-detail-empty {
+            margin-top: 7px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 850;
+          }
+  
+          .ticket-history-remark {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 13px;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: pre-wrap;
+          }
+  
+          .ticket-history-remark.wait {
+            background: #fffbeb;
+            border-left: 5px solid #f59e0b;
+          }
+  
+          .ticket-history-remark.onprocess {
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+          }
+  
+          .ticket-history-remark.complete {
+            background: #ecfdf5;
+            border-left: 5px solid #10b981;
+          }
+  
+          .ticket-history-remark.deny {
+            background: #fef2f2;
+            border-left: 5px solid #ef4444;
           }
         </style>
-
-        <div class="ticket-detail-box">
+  
+        <div class="ticket-detail-wrap">
           <div class="ticket-detail-card">
             <div><b>Ticket No:</b> ${this.escapeHtml(ticket.ticketNo)}</div>
             <div><b>Project:</b> ${this.escapeHtml(ticket.projectName)}</div>
             <div><b>Area:</b> ${this.escapeHtml(ticket.area)}</div>
+            <div><b>Request By:</b> ${this.escapeHtml(ticket.requestByDisplay)}</div>
+            <div><b>Request At:</b> ${this.escapeHtml(ticket.requestAt)}</div>
             <div><b>Contact Request:</b> ${this.escapeHtml(ticket.contact || '-')}</div>
+            <div><b>Current State:</b> ${this.escapeHtml(ticket.state)}</div>
           </div>
-
-          <div class="ticket-detail-card problem">
+  
+          <div class="ticket-detail-card">
             <div class="ticket-detail-title">Problem</div>
             <div><b>Title:</b> ${this.escapeHtml(ticket.problemTitle)}</div>
             <div><b>Detail:</b><br>${this.escapeHtml(ticket.problemDetail || '-')}</div>
           </div>
-
-          <div class="ticket-detail-card incharge">
-            <div class="ticket-detail-title dark">Part Incharge</div>
-            <div><b>State:</b> ${this.escapeHtml(stateText)}</div>
-            <div><b>Incharge By:</b> ${this.escapeHtml(inchargeText)}</div>
+  
+          <div class="ticket-detail-card">
+            <div class="ticket-detail-title">Reply</div>
+            <div>${this.escapeHtml(ticket.reply || '-')}</div>
+          </div>
+  
+          <div class="ticket-detail-card">
+            <div class="ticket-detail-title">Attachments</div>
+            ${attachmentHtml}
+          </div>
+  
+          <div class="ticket-detail-card">
+            <div class="ticket-detail-title">Ticket Status Timeline</div>
+            ${historyHtml}
           </div>
         </div>
       `
@@ -862,6 +1089,26 @@ export class TicketCenterComponent implements OnInit {
 
       console.error('Create ticket failed:', err);
     }
+  }
+
+
+  private normalizeState(state: string | undefined | null) {
+    return String(state || '')
+      .toLowerCase()
+      .replaceAll(' ', '')
+      .replaceAll('-', '');
+  }
+
+
+  getStateDisplayName(state: string) {
+    const value = this.normalizeState(state);
+  
+    if (value === 'wait') return 'WAIT';
+    if (value === 'onprocess') return 'ON PROCESS';
+    if (value === 'complete') return 'COMPLETE';
+    if (value === 'deny') return 'DENY';
+  
+    return String(state || '-').toUpperCase();
   }
 
   private formatRequestDate(date: Date) {
