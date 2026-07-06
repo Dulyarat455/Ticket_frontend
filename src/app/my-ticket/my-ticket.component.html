@@ -36,6 +36,13 @@
           <span>Resolved</span>
           <strong>{{ totalResolved }}</strong>
         </div>
+
+        <div class="summary-card deny">
+          <span>Deny</span>
+          <strong>{{ totalDeny }}</strong>
+        </div>
+
+        
       </div>
     </section>
   
@@ -88,6 +95,15 @@
           >
             Resolved
           </button>
+
+          <button
+          type="button"
+          [class.active]="statusFilter === 'Deny'"
+          (click)="setStatusFilter('Deny')"
+         >
+          Deny
+          </button>
+
         </div>
   
         <button type="button" class="clear-btn" (click)="clearFilter()">

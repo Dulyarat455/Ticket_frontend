@@ -814,3 +814,22 @@
     flex-direction: column;
   }
 }
+
+
+
+
+
+.ticket-status-pill.deny {
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+.progress-fill.deny {
+  background: #ef4444;
+}
+
+.summary-card.deny {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(254, 202, 202, 0.28);
+}
