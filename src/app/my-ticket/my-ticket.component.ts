@@ -329,6 +329,18 @@ export class MyTicketComponent implements OnInit {
     return value.replaceAll(' ', '-');
   }
 
+
+  getStatusDisplay(status: TicketStatus | string) {
+    const value = this.normalizeState(status);
+  
+    if (value === 'open' || value === 'wait') return 'Wait';
+    if (value === 'inprogress' || value === 'onprocess') return 'On Process';
+    if (value === 'resolved' || value === 'complete') return 'Complete';
+    if (value === 'deny') return 'Deny';
+  
+    return String(status || '-');
+  }
+
   getProgressPercent(status: TicketStatus | string) {
     const value = this.normalizeState(status);
 
@@ -406,6 +418,273 @@ export class MyTicketComponent implements OnInit {
         </div>
       `
     });
+  }
+
+
+
+
+
+
+  openTicketTimeline(ticket: MyTicket) {
+    const historyHtml = ticket.histories.length
+      ? ticket.histories.map(h => {
+          const stateClass = this.getHistoryStateClass(h.state);
+          const stateLabel = this.getHistoryStateLabel(h.state);
+  
+          return `
+            <div class="my-history-item">
+              <div class="my-history-dot ${stateClass}"></div>
+  
+              <div class="my-history-content">
+                <div>
+                  <span class="my-history-state ${stateClass}">
+                    ${this.escapeHtml(stateLabel)}
+                  </span>
+                </div>
+  
+                <div class="my-history-by">
+                  By: ${this.escapeHtml(h.inchargeByDisplay || '-')}
+                </div>
+  
+                ${
+                  h.remark
+                    ? `
+                      <div class="my-history-remark ${stateClass}">
+                        ${this.escapeHtml(h.remark)}
+                      </div>
+                    `
+                    : ''
+                }
+  
+                <div class="my-history-time">
+                  ${this.escapeHtml(h.timeStmp || '-')}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `<div class="my-history-empty">No status history</div>`;
+  
+    Swal.fire({
+      title: 'Ticket Timeline',
+      width: 760,
+      confirmButtonText: 'Close',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'my-timeline-popup',
+        confirmButton: 'my-timeline-confirm'
+      },
+      html: `
+        <style>
+          .my-timeline-popup {
+            border-radius: 24px !important;
+            padding: 0 0 22px 0 !important;
+            overflow: hidden;
+          }
+  
+          .my-timeline-confirm {
+            border-radius: 14px !important;
+            background: linear-gradient(135deg, #2563eb, #0891b2) !important;
+            color: #ffffff !important;
+            font-weight: 950 !important;
+            padding: 11px 24px !important;
+            border: 0 !important;
+          }
+  
+          .my-timeline-wrap {
+            text-align: left;
+            padding: 4px 8px 10px;
+          }
+  
+          .my-timeline-ticket-card {
+            padding: 14px;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+            line-height: 1.75;
+          }
+  
+          .my-timeline-ticket-card b {
+            color: #334155;
+          }
+  
+          .my-history-list {
+            padding: 4px 0;
+          }
+  
+          .my-history-item {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+          }
+  
+          .my-history-dot {
+            width: 12px;
+            height: 12px;
+            margin-top: 10px;
+            border-radius: 999px;
+            background: #2563eb;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+          }
+  
+          .my-history-dot.wait,
+          .my-history-dot.open {
+            background: #f59e0b;
+            box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
+          }
+  
+          .my-history-dot.onprocess,
+          .my-history-dot.in-progress {
+            background: #2563eb;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.14);
+          }
+  
+          .my-history-dot.complete,
+          .my-history-dot.resolved {
+            background: #10b981;
+            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.14);
+          }
+  
+          .my-history-dot.deny {
+            background: #ef4444;
+            box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.14);
+          }
+  
+          .my-history-content {
+            min-width: 0;
+          }
+  
+          .my-history-state {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: 0.5px;
+          }
+  
+          .my-history-state.wait,
+          .my-history-state.open {
+            color: #92400e;
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+          }
+  
+          .my-history-state.onprocess,
+          .my-history-state.in-progress {
+            color: #1d4ed8;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+          }
+  
+          .my-history-state.complete,
+          .my-history-state.resolved {
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+          }
+  
+          .my-history-state.deny {
+            color: #b91c1c;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+          }
+  
+          .my-history-by {
+            margin-top: 7px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 850;
+          }
+  
+          .my-history-time,
+          .my-history-empty {
+            margin-top: 7px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 850;
+          }
+  
+          .my-history-remark {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 13px;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: pre-wrap;
+          }
+  
+          .my-history-remark.wait,
+          .my-history-remark.open {
+            background: #fffbeb;
+            border-left: 5px solid #f59e0b;
+          }
+  
+          .my-history-remark.onprocess,
+          .my-history-remark.in-progress {
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+          }
+  
+          .my-history-remark.complete,
+          .my-history-remark.resolved {
+            background: #ecfdf5;
+            border-left: 5px solid #10b981;
+          }
+  
+          .my-history-remark.deny {
+            background: #fef2f2;
+            border-left: 5px solid #ef4444;
+          }
+        </style>
+  
+        <div class="my-timeline-wrap">
+          <div class="my-timeline-ticket-card">
+            <div><b>Ticket No:</b> ${this.escapeHtml(ticket.ticketNo)}</div>
+            <div><b>Project:</b> ${this.escapeHtml(ticket.projectName)}</div>
+            <div><b>Problem:</b> ${this.escapeHtml(ticket.problem)}</div>
+            <div><b>Current Status:</b> ${this.escapeHtml(ticket.status)}</div>
+          </div>
+  
+          <div class="my-history-list">
+            ${historyHtml}
+          </div>
+        </div>
+      `
+    });
+  }
+  
+  private getHistoryStateClass(state: string) {
+    const value = this.normalizeState(state);
+  
+    if (value === 'wait') return 'wait';
+    if (value === 'open') return 'open';
+    if (value === 'onprocess') return 'onprocess';
+    if (value === 'inprogress') return 'in-progress';
+    if (value === 'complete') return 'complete';
+    if (value === 'resolved') return 'resolved';
+    if (value === 'deny') return 'deny';
+  
+    return value || 'wait';
+  }
+  
+  private getHistoryStateLabel(state: string) {
+    const value = this.normalizeState(state);
+  
+    if (value === 'wait') return 'WAIT';
+    if (value === 'open') return 'WAIT';
+    if (value === 'onprocess') return 'ON PROCESS';
+    if (value === 'inprogress') return 'ON PROCESS';
+    if (value === 'complete') return 'COMPLETE';
+    if (value === 'resolved') return 'COMPLETE';
+    if (value === 'deny') return 'DENY';
+  
+    return String(state || '-').toUpperCase();
   }
 
 

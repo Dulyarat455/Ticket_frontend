@@ -77,7 +77,7 @@
             [class.active]="statusFilter === 'Open'"
             (click)="setStatusFilter('Open')"
           >
-            Open
+            Wait
           </button>
   
           <button
@@ -85,7 +85,7 @@
             [class.active]="statusFilter === 'In Progress'"
             (click)="setStatusFilter('In Progress')"
           >
-            In Progress
+            On Process
           </button>
   
           <button
@@ -93,7 +93,7 @@
             [class.active]="statusFilter === 'Resolved'"
             (click)="setStatusFilter('Resolved')"
           >
-            Resolved
+            Complete
           </button>
 
           <button
@@ -143,8 +143,9 @@
                 class="ticket-status-pill"
                 [ngClass]="getStatusClass(ticket.status)"
               >
-                {{ ticket.status }}
-              </span>
+                {{ getStatusDisplay(ticket.status) }}
+             </span>
+
             </div>
   
             <div class="ticket-project">
@@ -210,8 +211,8 @@
             <span
               class="ticket-status-pill"
               [ngClass]="getStatusClass(selectedTicket.status)"
-            >
-              {{ selectedTicket.status }}
+              >
+              {{ getStatusDisplay(selectedTicket.status) }}
             </span>
           </div>
   
@@ -336,6 +337,23 @@
               </div>
             </div>
           </div>
+
+
+          <div class="timeline-action-box">
+            <button
+              type="button"
+              class="timeline-btn"
+              (click)="openTicketTimeline(selectedTicket)"
+            >
+              <i class="fas fa-history"></i>
+              View Ticket Timeline
+            </button>
+          
+            <div class="timeline-help">
+              ดูประวัติการเปลี่ยนสถานะทั้งหมดของ Ticket นี้
+            </div>
+          </div>
+
   
           <div class="owner-reply-box">
             <div class="reply-title">
