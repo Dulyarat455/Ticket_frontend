@@ -265,6 +265,41 @@
               <strong>{{ selectedTicket.updatedAt || '-' }}</strong>
             </div>
           </div>
+
+
+          <div class="attachment-section">
+            <div class="attachment-title">
+              <i class="fas fa-images"></i>
+              Attachments
+            </div>
+          
+            @if (selectedTicket.attachments.length > 0) {
+              <div class="attachment-grid">
+                @for (file of selectedTicket.attachments; track file.id) {
+                  <button
+                    type="button"
+                    class="attachment-card"
+                    (click)="openAttachment(file)"
+                    title="Open Image"
+                  >
+                    <img
+                      [src]="config.apiServer + file.fileUrl"
+                      [alt]="file.fileName"
+                    />
+          
+                    <div class="attachment-name">
+                      {{ file.fileName }}
+                    </div>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="attachment-empty">
+                No attachment files
+              </div>
+            }
+          </div>
+
   
           <div class="tracking-box">
             <div class="tracking-title">Tracking Progress</div>

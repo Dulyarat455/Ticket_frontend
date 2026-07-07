@@ -109,6 +109,8 @@ type MyTicket = {
 export class MyTicketComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
+  config = config;
+
   requesterName = '-';
   requesterGroup = 'Production User';
 
@@ -337,6 +339,87 @@ export class MyTicketComponent implements OnInit {
 
     return 0;
   }
+
+
+  openAttachment(file: TicketAttachment) {
+    const imageUrl = `${this.config.apiServer}${file.fileUrl}`;
+  
+    Swal.fire({
+      width: 900,
+      showConfirmButton: true,
+      confirmButtonText: 'Close',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'attachment-popup',
+        confirmButton: 'attachment-confirm'
+      },
+      html: `
+        <style>
+          .attachment-popup {
+            border-radius: 24px !important;
+            padding: 22px 0 !important;
+            overflow: hidden;
+          }
+  
+          .attachment-confirm {
+            border-radius: 14px !important;
+            background: linear-gradient(135deg, #2563eb, #0891b2) !important;
+            color: #ffffff !important;
+            font-weight: 950 !important;
+            padding: 11px 24px !important;
+            border: 0 !important;
+          }
+  
+          .attachment-preview-wrap {
+            padding: 8px 28px 4px;
+            text-align: center;
+          }
+  
+          .attachment-preview-img {
+            width: 100%;
+            max-height: 72vh;
+            object-fit: contain;
+            border-radius: 18px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+          }
+  
+          .attachment-file-name {
+            margin-top: 12px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 850;
+            word-break: break-all;
+          }
+        </style>
+  
+        <div class="attachment-preview-wrap">
+          <img
+            src="${this.escapeHtml(imageUrl)}"
+            class="attachment-preview-img"
+            alt="${this.escapeHtml(file.fileName || 'Attachment')}"
+          />
+  
+          <div class="attachment-file-name">
+            ${this.escapeHtml(file.fileName || '-')}
+          </div>
+        </div>
+      `
+    });
+  }
+
+
+
+  private escapeHtml(value: string) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+
 
   private mapTicketStatus(state: string): TicketStatus {
     const value = this.normalizeState(state);

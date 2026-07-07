@@ -830,3 +830,85 @@
   background: rgba(239, 68, 68, 0.16);
   border-color: rgba(254, 202, 202, 0.28);
 }
+
+
+
+
+
+/* =========================
+   ATTACHMENTS
+   ========================= */
+
+   .attachment-section {
+    margin-bottom: 18px;
+    padding: 16px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .attachment-title {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 950;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .attachment-title i {
+    color: #2563eb;
+  }
+  
+  .attachment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 12px;
+  }
+  
+  .attachment-card {
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+    transition: 0.18s ease;
+  }
+  
+  .attachment-card:hover {
+    transform: translateY(-2px);
+    border-color: #93c5fd;
+    box-shadow: 0 14px 24px rgba(37, 99, 235, 0.14);
+  }
+  
+  .attachment-card img {
+    width: 100%;
+    height: 96px;
+    object-fit: cover;
+    display: block;
+    background: #e2e8f0;
+  }
+  
+  .attachment-name {
+    padding: 8px 10px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 850;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .attachment-empty {
+    padding: 14px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 850;
+    text-align: center;
+  }
