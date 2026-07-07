@@ -5,6 +5,8 @@ import { TicketCenterComponent } from './ticket-center/ticket-center.component';
 import { OwnerComponent } from './owner/owner.component';
 import { MyTicketComponent } from './my-ticket/my-ticket.component';
 import { ProjectComponent } from './project/project.component';
+import { OwnerReportComponent } from './owner-report/owner-report.component';
+
 
 export const routes: Routes = [
   {
@@ -30,6 +32,10 @@ export const routes: Routes = [
   {
     path: 'project',
     component: ProjectComponent,
+  },
+  {
+    path: 'ownerReport',
+    component: OwnerReportComponent,
   },
   {
     path: '404',

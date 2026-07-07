@@ -1,0 +1,309 @@
+<div class="owner-report-page">
+
+    <!-- HERO -->
+    <section class="report-hero">
+      <div class="report-title">
+        <div class="section-label">
+          <i class="fas fa-chart-line"></i>
+          OWNER REPORT CENTER
+        </div>
+  
+        <h1>Owner Ticket Report</h1>
+  
+        <p>
+          รายงานภาพรวม Ticket สำหรับ Project Owner ใช้ดูปริมาณงาน,
+          สถานะ Ticket, งานค้าง, ความเร็วในการปิดงาน และ Priority ของปัญหา
+        </p>
+  
+        <div class="owner-chip-row">
+          <span><i class="fas fa-user-shield"></i> Project Owner View</span>
+          <span><i class="fas fa-filter"></i> Filterable Report</span>
+          <span><i class="fas fa-file-export"></i> Export Ready</span>
+        </div>
+      </div>
+  
+      <div class="hero-score-card">
+        <span>Complete Rate</span>
+        <strong>{{ completeRate }}%</strong>
+  
+        <div class="score-track">
+          <div class="score-fill" [style.width.%]="completeRate"></div>
+        </div>
+  
+        <p>Deny Rate: {{ denyRate }}%</p>
+      </div>
+    </section>
+  
+    <!-- FILTER -->
+    <section class="report-filter-panel">
+      <div class="filter-group">
+        <label>Date From</label>
+        <input type="date" [(ngModel)]="dateFrom" />
+      </div>
+  
+      <div class="filter-group">
+        <label>Date To</label>
+        <input type="date" [(ngModel)]="dateTo" />
+      </div>
+  
+      <div class="filter-group">
+        <label>Project</label>
+        <select [(ngModel)]="selectedProject">
+          <option *ngFor="let project of projects" [value]="project">
+            {{ project }}
+          </option>
+        </select>
+      </div>
+  
+      <div class="filter-group">
+        <label>Status</label>
+        <select [(ngModel)]="selectedStatus">
+          <option value="All">All</option>
+          <option value="Wait">Wait</option>
+          <option value="On Process">On Process</option>
+          <option value="Complete">Complete</option>
+          <option value="Deny">Deny</option>
+        </select>
+      </div>
+  
+      <div class="filter-buttons">
+        <button type="button" class="search-btn">
+          <i class="fas fa-search"></i>
+          Search
+        </button>
+  
+        <button type="button" class="clear-btn" (click)="clearFilter()">
+          Clear
+        </button>
+      </div>
+    </section>
+  
+    <!-- SUMMARY -->
+    <section class="summary-grid">
+      <div class="summary-card total">
+        <div>
+          <span>Total Tickets</span>
+          <strong>{{ summary.total }}</strong>
+        </div>
+        <i class="fas fa-ticket-alt"></i>
+      </div>
+  
+      <div class="summary-card wait">
+        <div>
+          <span>Wait</span>
+          <strong>{{ summary.wait }}</strong>
+        </div>
+        <i class="fas fa-hourglass-half"></i>
+      </div>
+  
+      <div class="summary-card process">
+        <div>
+          <span>On Process</span>
+          <strong>{{ summary.onProcess }}</strong>
+        </div>
+        <i class="fas fa-spinner"></i>
+      </div>
+  
+      <div class="summary-card complete">
+        <div>
+          <span>Complete</span>
+          <strong>{{ summary.complete }}</strong>
+        </div>
+        <i class="fas fa-check-circle"></i>
+      </div>
+  
+      <div class="summary-card deny">
+        <div>
+          <span>Deny</span>
+          <strong>{{ summary.deny }}</strong>
+        </div>
+        <i class="fas fa-times-circle"></i>
+      </div>
+  
+      <div class="summary-card leadtime">
+        <div>
+          <span>Avg Lead Time</span>
+          <strong>{{ summary.avgLeadTime }}</strong>
+        </div>
+        <i class="fas fa-clock"></i>
+      </div>
+    </section>
+  
+    <!-- MAIN REPORT GRID -->
+    <section class="report-content-grid">
+  
+      <!-- PROJECT PERFORMANCE -->
+      <div class="report-card project-performance-card">
+        <div class="card-head">
+          <div>
+            <div class="section-label">📊 Project Performance</div>
+            <h2>สรุป Ticket ตาม Project</h2>
+          </div>
+  
+          <button type="button" class="export-btn">
+            <i class="fas fa-file-excel"></i>
+            Export
+          </button>
+        </div>
+  
+        <div class="project-report-list">
+          <div class="project-report-row" *ngFor="let row of projectRows">
+            <div class="project-report-top">
+              <div>
+                <strong>{{ row.projectName }}</strong>
+                <span>{{ row.total }} Tickets • Avg {{ row.avgLeadTime }}</span>
+              </div>
+  
+              <b>{{ getBarPercent(row.complete, row.total) }}%</b>
+            </div>
+  
+            <div class="stack-bar">
+              <div
+                class="stack wait"
+                [style.width.%]="getBarPercent(row.wait, row.total)"
+              ></div>
+              <div
+                class="stack process"
+                [style.width.%]="getBarPercent(row.onProcess, row.total)"
+              ></div>
+              <div
+                class="stack complete"
+                [style.width.%]="getBarPercent(row.complete, row.total)"
+              ></div>
+              <div
+                class="stack deny"
+                [style.width.%]="getBarPercent(row.deny, row.total)"
+              ></div>
+            </div>
+  
+            <div class="project-mini-status">
+              <span>Wait {{ row.wait }}</span>
+              <span>Process {{ row.onProcess }}</span>
+              <span>Complete {{ row.complete }}</span>
+              <span>Deny {{ row.deny }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- STATUS OVERVIEW -->
+      <div class="report-card status-overview-card">
+        <div class="card-head">
+          <div>
+            <div class="section-label">🎯 Status Overview</div>
+            <h2>ภาพรวมสถานะ</h2>
+          </div>
+        </div>
+  
+        <div class="status-chart-demo">
+          <div class="status-line wait">
+            <span>Wait</span>
+            <div>
+              <b [style.width.%]="getBarPercent(summary.wait, summary.total)"></b>
+            </div>
+            <strong>{{ summary.wait }}</strong>
+          </div>
+  
+          <div class="status-line process">
+            <span>On Process</span>
+            <div>
+              <b [style.width.%]="getBarPercent(summary.onProcess, summary.total)"></b>
+            </div>
+            <strong>{{ summary.onProcess }}</strong>
+          </div>
+  
+          <div class="status-line complete">
+            <span>Complete</span>
+            <div>
+              <b [style.width.%]="getBarPercent(summary.complete, summary.total)"></b>
+            </div>
+            <strong>{{ summary.complete }}</strong>
+          </div>
+  
+          <div class="status-line deny">
+            <span>Deny</span>
+            <div>
+              <b [style.width.%]="getBarPercent(summary.deny, summary.total)"></b>
+            </div>
+            <strong>{{ summary.deny }}</strong>
+          </div>
+        </div>
+      </div>
+  
+      <!-- TICKET TREND -->
+        <div class="report-card trend-card">
+            <div class="card-head">
+            <div>
+                <div class="section-label">📈 Ticket Trend</div>
+                <h2>แนวโน้ม Ticket รายเดือน</h2>
+            </div>
+        
+            <div class="graph-note">
+                Low Frequency
+            </div>
+            </div>
+        
+            <div class="trend-chart">
+            <div class="trend-bar-item" *ngFor="let row of trendRows">
+                <div class="trend-value">{{ row.total }}</div>
+        
+                <div class="trend-bar-wrap">
+                <div
+                    class="trend-bar"
+                    [style.height.%]="getTrendHeight(row.total)"
+                ></div>
+                </div>
+        
+                <div class="trend-label">{{ row.month }}</div>
+            </div>
+            </div>
+        
+            <div class="chart-helper-text">
+            ใช้ดูแนวโน้มว่าจำนวน Ticket เพิ่มขึ้นหรือลดลงในแต่ละเดือน
+            </div>
+        </div>
+        
+        <!-- PRIORITY DISTRIBUTION -->
+        <div class="report-card priority-chart-card">
+            <div class="card-head">
+            <div>
+                <div class="section-label">🔥 Priority Distribution</div>
+                <h2>สัดส่วนความเร่งด่วน</h2>
+            </div>
+            </div>
+        
+            <div class="priority-chart-list">
+            <div
+                class="priority-chart-row"
+                *ngFor="let row of priorityRows"
+            >
+                <div class="priority-chart-head">
+                <span
+                    class="priority-badge"
+                    [ngClass]="getPriorityClass(row.priority)"
+                >
+                    <span class="priority-dot"></span>
+                    <span>{{ row.priority }}</span>
+                </span>
+        
+                <strong>{{ row.count }}</strong>
+                </div>
+        
+                <div class="priority-track">
+                <div
+                    class="priority-fill"
+                    [ngClass]="getPriorityClass(row.priority)"
+                    [style.width.%]="getPriorityPercent(row.count)"
+                ></div>
+                </div>
+            </div>
+            </div>
+        
+            <div class="chart-helper-text">
+            เหมาะกับระบบที่ Ticket ไม่ได้เกิดบ่อย เพราะช่วยดูว่า Ticket ที่เกิดขึ้นหนักระดับไหน
+            </div>
+        </div>
+  
+    </section>
+  
+  </div>
