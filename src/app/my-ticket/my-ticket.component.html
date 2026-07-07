@@ -172,11 +172,12 @@
             <div class="ticket-footer">
               <span>{{ ticket.requestAt }}</span>
               <span
-                class="priority-pill"
-                [ngClass]="getPriorityClass(ticket.priority)"
-              >
-                {{ ticket.priority }}
-              </span>
+              class="priority-badge"
+              [ngClass]="getPriorityClass(ticket.priority)"
+            >
+              <span class="priority-dot"></span>
+              <span>{{ ticket.priority }}</span>
+            </span>
             </div>
           </button>
   
@@ -249,11 +250,12 @@
             <div>
               <label>Priority</label>
               <span
-                class="priority-pill"
-                [ngClass]="getPriorityClass(selectedTicket.priority)"
-              >
-                {{ selectedTicket.priority }}
-              </span>
+              class="priority-badge"
+              [ngClass]="getPriorityClass(selectedTicket.priority)"
+            >
+              <span class="priority-dot"></span>
+              <span>{{ selectedTicket.priority }}</span>
+            </span>
             </div>
   
             <div>

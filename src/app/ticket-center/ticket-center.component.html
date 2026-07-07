@@ -262,10 +262,11 @@
 
             <td>
               <span
-                class="priority-pill"
+                class="priority-badge"
                 [ngClass]="getPriorityClass(ticket.priority)"
               >
-                {{ ticket.priority }}
+                <span class="priority-dot"></span>
+                <span>{{ ticket.priority }}</span>
               </span>
             </td>
 
@@ -274,7 +275,7 @@
                 class="ticket-status-pill"
                 [ngClass]="getTicketStatusClass(ticket.state)"
               >
-                {{ ticket.state }}
+                {{ getTicketStatusDisplay(ticket.state) }}
               </span>
             </td>
 

@@ -612,10 +612,29 @@ export class TicketCenterComponent implements OnInit {
   }
 
   getTicketStatusClass(status: string) {
-    return String(status || '')
-      .toLowerCase()
-      .replaceAll(' ', '-');
+    const value = this.normalizeState(status);
+  
+    if (value === 'wait') return 'wait';
+    if (value === 'onprocess') return 'onprocess';
+    if (value === 'complete') return 'complete';
+    if (value === 'deny') return 'deny';
+  
+    return value;
   }
+
+
+  getTicketStatusDisplay(status: string) {
+    const value = this.normalizeState(status);
+  
+    if (value === 'wait') return 'Wait';
+    if (value === 'onprocess') return 'On Process';
+    if (value === 'complete') return 'Complete';
+    if (value === 'deny') return 'Deny';
+  
+    return String(status || '-');
+  }
+
+
 
   async createTicket() {
     if (!this.selectedProject) {
