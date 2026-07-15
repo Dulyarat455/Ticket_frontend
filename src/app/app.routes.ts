@@ -6,6 +6,7 @@ import { OwnerComponent } from './owner/owner.component';
 import { MyTicketComponent } from './my-ticket/my-ticket.component';
 import { ProjectComponent } from './project/project.component';
 import { OwnerReportComponent } from './owner-report/owner-report.component';
+import { SignUpComponent } from './sign-up/sign-up.component';
 
 
 export const routes: Routes = [
@@ -36,6 +37,10 @@ export const routes: Routes = [
   {
     path: 'ownerReport',
     component: OwnerReportComponent,
+  },
+  {
+    path: 'signUp',
+    component: SignUpComponent,
   },
   {
     path: '404',

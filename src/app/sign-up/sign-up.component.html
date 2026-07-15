@@ -1,0 +1,210 @@
+<div class="signup-page">
+
+    <!-- HERO -->
+    <section class="signup-hero">
+      <div class="signup-title-block">
+        <div class="section-label">
+          <i class="fas fa-users-cog"></i>
+          MEMBER MANAGEMENT
+        </div>
+  
+        <h1>Sign Up / Member Control</h1>
+  
+        <p>
+          หน้าสำหรับเพิ่ม Member เข้าระบบ Ticket และกำหนด Section / Group
+          เพื่อใช้แยกสิทธิ์และข้อมูลของผู้ใช้งาน
+        </p>
+  
+        <div class="hero-chip-row">
+          <span><i class="fas fa-user-plus"></i> Create Member</span>
+          <span><i class="fas fa-layer-group"></i> Map Group / Section</span>
+          <span><i class="fas fa-id-card"></i> RFID Ready</span>
+        </div>
+      </div>
+  
+      <button
+        type="button"
+        class="add-member-hero-btn"
+        (click)="openCreateUserModal()"
+        [disabled]="isLoading"
+      >
+        <i class="fas fa-plus"></i>
+        Add Member
+      </button>
+    </section>
+  
+    <!-- SUMMARY -->
+    <section class="member-summary-grid">
+      <div class="summary-card total">
+        <span>Total Members</span>
+        <strong>{{ totalUsers }}</strong>
+      </div>
+  
+      <div class="summary-card admin">
+        <span>Admin</span>
+        <strong>{{ totalAdmin }}</strong>
+      </div>
+  
+      <div class="summary-card owner">
+        <span>Owner</span>
+        <strong>{{ totalOwner }}</strong>
+      </div>
+  
+      <div class="summary-card user">
+        <span>User</span>
+        <strong>{{ totalUser }}</strong>
+      </div>
+    </section>
+  
+    <!-- TOOLBAR -->
+    <section class="member-toolbar">
+      <div>
+        <div class="section-label">🔎 Member List</div>
+        <h2>รายการ Member ในระบบ</h2>
+      </div>
+  
+      <div class="toolbar-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+  
+          <input
+            type="text"
+            [(ngModel)]="searchText"
+            placeholder="Search name, emp no, RFID, role, section, group..."
+          />
+  
+          @if (searchText.trim().length > 0) {
+            <button
+              type="button"
+              class="clear-search-btn"
+              (click)="clearSearch()"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          }
+        </div>
+  
+        <button
+          type="button"
+          class="add-member-btn"
+          (click)="openCreateUserModal()"
+        >
+          <i class="fas fa-user-plus"></i>
+          Add Member
+        </button>
+      </div>
+    </section>
+  
+    <!-- TABLE -->
+    <section class="member-table-card">
+      <div class="table-count-row">
+        <span>{{ filteredUsers.length }} Members</span>
+  
+        @if (isLoading) {
+          <div class="loading-pill">
+            <i class="fas fa-spinner fa-spin"></i>
+            Loading...
+          </div>
+        }
+      </div>
+  
+      <div class="member-table-wrap">
+        <table class="member-table">
+          <thead>
+            <tr>
+              <th width="70">#</th>
+              <th>Member</th>
+              <th>Emp No.</th>
+              <th>RFID</th>
+              <th>Role</th>
+              <th>Section</th>
+              <th>Group</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+  
+          <tbody>
+            @if (isLoading) {
+              <tr>
+                <td colspan="8">
+                  <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h3>Loading Members...</h3>
+                    <p>กำลังโหลดข้อมูล Member</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (user of filteredUsers; track user.id; let i = $index) {
+                <tr>
+                  <td>
+                    <span class="index-pill">{{ i + 1 }}</span>
+                  </td>
+  
+                  <td>
+                    <div class="member-cell">
+                      <div class="member-avatar">
+                        {{ user.name.charAt(0).toUpperCase() }}
+                      </div>
+  
+                      <div>
+                        <strong>{{ user.name }}</strong>
+                        <span>ID: {{ user.id }}</span>
+                      </div>
+                    </div>
+                  </td>
+  
+                  <td>
+                    <span class="info-text">{{ user.empNo || '-' }}</span>
+                  </td>
+  
+                  <td>
+                    <span class="info-text">{{ user.rfId || '-' }}</span>
+                  </td>
+  
+                  <td>
+                    <span
+                      class="role-badge"
+                      [ngClass]="getRoleClass(user.role)"
+                    >
+                      {{ user.role || '-' }}
+                    </span>
+                  </td>
+  
+                  <td>
+                    <div class="group-section-cell">
+                      <strong>{{ user.sectionName || '-' }}</strong>
+                      
+                    </div>
+                  </td>
+  
+                  <td>
+                    <div class="group-section-cell">
+                      <strong>{{ user.groupName || '-' }}</strong>
+                     
+                    </div>
+                  </td>
+  
+                  <td>
+                    <span class="status-pill">
+                      {{ user.status }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <i class="fas fa-user-slash"></i>
+                      <h3>No Member Found</h3>
+                      <p>ยังไม่มี Member หรือไม่พบข้อมูลตามคำค้นหา</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
